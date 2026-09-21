@@ -35,7 +35,7 @@ export const LogoLoader = ({ sMessage = "Loading..." }: ILogoLoaderProps) => {
                     animation: `${pulseAnimation} 1.5s ease-in-out infinite`
                 }}
             >
-                Cash<Box component="span" sx={{ color: 'text.primary', fontStyle: 'italic' }}>Flow</Box>
+                PO<Box component="span" sx={{ color: 'text.primary', fontStyle: 'italic' }}>PR</Box>
             </Typography>
 
             {/* ข้อความ Loading เล็กๆ ด้านล่าง */}
