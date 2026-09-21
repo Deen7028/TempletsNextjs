@@ -38,24 +38,21 @@ public partial class PoDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        if (!optionsBuilder.IsConfigured)
-        {
-            optionsBuilder.UseMySQL("server=localhost;port=3306;database=6620310001_po;user=root;password=Kamaruding7028;");
-        }
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<TbApprovalLog>(entity =>
         {
-            entity.HasKey(e => e.NLogId).HasName("PRIMARY");
+            entity.ToTable("tbApprovalLogs");
+            entity.HasKey(e => e.NLogId);
 
             entity.HasIndex(e => e.NRequestId, "FK_Logs_PR");
 
             entity.Property(e => e.NLogId).HasColumnName("nLogId");
             entity.Property(e => e.DtActionDate)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("datetime")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("dtActionDate");
             entity.Property(e => e.NActionByEmployeeId).HasColumnName("nActionByEmployeeId");
             entity.Property(e => e.NRequestId).HasColumnName("nRequestId");
@@ -74,7 +71,8 @@ public partial class PoDbContext : DbContext
 
         modelBuilder.Entity<TbPurchaseOrder>(entity =>
         {
-            entity.HasKey(e => e.NPoId).HasName("PRIMARY");
+            entity.ToTable("tbPurchaseOrders");
+            entity.HasKey(e => e.NPoId);
 
             entity.HasIndex(e => e.NApprovedBy, "FK_PO_ApprovedBy");
 
@@ -95,7 +93,7 @@ public partial class PoDbContext : DbContext
             entity.Property(e => e.NPoId).HasColumnName("nPoId");
             entity.Property(e => e.DtCreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("datetime")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("dtCreatedAt");
             entity.Property(e => e.DtDeliveryDate)
                 .HasColumnType("date")
@@ -163,7 +161,8 @@ public partial class PoDbContext : DbContext
 
         modelBuilder.Entity<TbPurchaseOrderItem>(entity =>
         {
-            entity.HasKey(e => e.NPoItemId).HasName("PRIMARY");
+            entity.ToTable("tbPurchaseOrderItems");
+            entity.HasKey(e => e.NPoItemId);
 
             entity.HasIndex(e => e.NPoId, "FK_POItems_PO");
 
@@ -197,7 +196,8 @@ public partial class PoDbContext : DbContext
 
         modelBuilder.Entity<TbPurchaseRequest>(entity =>
         {
-            entity.HasKey(e => e.NRequestId).HasName("PRIMARY");
+            entity.ToTable("tbPurchaseRequests");
+            entity.HasKey(e => e.NRequestId);
 
             entity.HasIndex(e => e.NDepartmentId, "FK_PR_Department");
 
@@ -212,10 +212,10 @@ public partial class PoDbContext : DbContext
             entity.Property(e => e.NRequestId).HasColumnName("nRequestId");
             entity.Property(e => e.DtCreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("datetime")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("dtCreatedAt");
             entity.Property(e => e.DtUpdatedAt)
-                .HasColumnType("datetime")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("dtUpdatedAt");
             entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.NDepartmentId).HasColumnName("nDepartmentId");
@@ -244,7 +244,8 @@ public partial class PoDbContext : DbContext
 
         modelBuilder.Entity<TbPurchaseRequestItem>(entity =>
         {
-            entity.HasKey(e => e.NRequestItemId).HasName("PRIMARY");
+            entity.ToTable("tbPurchaseRequestItems");
+            entity.HasKey(e => e.NRequestItemId);
 
             entity.HasIndex(e => e.NProductId, "FK_PRItems_Product");
 
@@ -282,16 +283,17 @@ public partial class PoDbContext : DbContext
 
         modelBuilder.Entity<TmDeliveryLocation>(entity =>
         {
-            entity.HasKey(e => e.NLocationId).HasName("PRIMARY");
+            entity.ToTable("tmDeliveryLocations");
+            entity.HasKey(e => e.NLocationId);
 
             entity.Property(e => e.NLocationId).HasColumnName("nLocationId");
             entity.Property(e => e.DtCreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("datetime")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("dtCreatedAt");
             entity.Property(e => e.IsActive)
                 .IsRequired()
-                .HasDefaultValueSql("'1'")
+                .HasDefaultValue(true)
                 .HasColumnName("isActive");
             entity.Property(e => e.SLocationName)
                 .HasMaxLength(255)
@@ -300,18 +302,19 @@ public partial class PoDbContext : DbContext
 
         modelBuilder.Entity<TmDepartment>(entity =>
         {
-            entity.HasKey(e => e.NDepartmentId).HasName("PRIMARY");
+            entity.ToTable("tmDepartments");
+            entity.HasKey(e => e.NDepartmentId);
 
             entity.HasIndex(e => e.SDepartmentCode, "sDepartmentCode").IsUnique();
 
             entity.Property(e => e.NDepartmentId).HasColumnName("nDepartmentId");
             entity.Property(e => e.DtCreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("datetime")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("dtCreatedAt");
             entity.Property(e => e.IsActive)
                 .IsRequired()
-                .HasDefaultValueSql("'1'")
+                .HasDefaultValue(true)
                 .HasColumnName("isActive");
             entity.Property(e => e.SDepartmentCode)
                 .HasMaxLength(50)
@@ -323,18 +326,19 @@ public partial class PoDbContext : DbContext
 
         modelBuilder.Entity<TmEmployee>(entity =>
         {
-            entity.HasKey(e => e.NEmployeeId).HasName("PRIMARY");
+            entity.ToTable("tmEmployees");
+            entity.HasKey(e => e.NEmployeeId);
 
             entity.HasIndex(e => e.NDepartmentId, "FK_Employees_Department");
 
             entity.Property(e => e.NEmployeeId).HasColumnName("nEmployeeId");
             entity.Property(e => e.DtCreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("datetime")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("dtCreatedAt");
             entity.Property(e => e.IsActive)
                 .IsRequired()
-                .HasDefaultValueSql("'1'")
+                .HasDefaultValue(true)
                 .HasColumnName("isActive");
             entity.Property(e => e.NDepartmentId).HasColumnName("nDepartmentId");
             entity.Property(e => e.SFirstName)
@@ -355,13 +359,15 @@ public partial class PoDbContext : DbContext
 
             entity.HasOne(d => d.NDepartment).WithMany(p => p.TmEmployees)
                 .HasForeignKey(d => d.NDepartmentId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_Employees_Department");
         });
 
         modelBuilder.Entity<TmProduct>(entity =>
         {
-            entity.HasKey(e => e.NProductId).HasName("PRIMARY");
+            entity.ToTable("tmProducts");
+            entity.HasKey(e => e.NProductId);
 
             entity.HasIndex(e => e.NDefaultSupplierId, "FK_Products_Supplier");
 
@@ -370,11 +376,11 @@ public partial class PoDbContext : DbContext
             entity.Property(e => e.NProductId).HasColumnName("nProductId");
             entity.Property(e => e.DtCreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("datetime")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("dtCreatedAt");
             entity.Property(e => e.IsActive)
                 .IsRequired()
-                .HasDefaultValueSql("'1'")
+                .HasDefaultValue(true)
                 .HasColumnName("isActive");
             entity.Property(e => e.NDefaultSupplierId).HasColumnName("nDefaultSupplierId");
             entity.Property(e => e.SProductCode)
@@ -403,18 +409,19 @@ public partial class PoDbContext : DbContext
 
         modelBuilder.Entity<TmSupplier>(entity =>
         {
-            entity.HasKey(e => e.NSupplierId).HasName("PRIMARY");
+            entity.ToTable("tmSuppliers");
+            entity.HasKey(e => e.NSupplierId);
 
             entity.HasIndex(e => e.SSupplierCode, "sSupplierCode").IsUnique();
 
             entity.Property(e => e.NSupplierId).HasColumnName("nSupplierId");
             entity.Property(e => e.DtCreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("datetime")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("dtCreatedAt");
             entity.Property(e => e.IsActive)
                 .IsRequired()
-                .HasDefaultValueSql("'1'")
+                .HasDefaultValue(true)
                 .HasColumnName("isActive");
             entity.Property(e => e.SAddress)
                 .HasColumnType("text")

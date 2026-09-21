@@ -49,6 +49,11 @@ export const CartContainer: React.FC = () => {
       return;
     }
 
+    if (!objUser?.nDepartmentId || objUser.nDepartmentId <= 0) {
+      setSError('บัญชีของคุณยังไม่ได้ระบุสังกัดแผนก กรุณาไปที่หน้าข้อมูลส่วนตัว (Profile) เพื่อเลือกแผนกก่อนทำการสั่งซื้อสินค้า');
+      return;
+    }
+
     if (cartItems.length === 0) {
       setSError('ไม่มีรายการสินค้าในตะกร้า');
       return;
@@ -501,9 +506,15 @@ export const CartContainer: React.FC = () => {
                   <Typography variant="caption" color="text.secondary">
                     สังกัดแผนก
                   </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#1e293b' }}>
-                    {objUser?.sDepartmentName || '-'}
-                  </Typography>
+                  {objUser?.nDepartmentId && objUser.nDepartmentId > 0 ? (
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#1e293b' }}>
+                      {objUser?.sDepartmentName || '-'}
+                    </Typography>
+                  ) : (
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#dc2626' }}>
+                      ยังไม่ได้ระบุ (<Link href="/profile" style={{ color: '#2563eb', textDecoration: 'underline' }}>ไปตั้งค่าที่โปรไฟล์</Link>)
+                    </Typography>
+                  )}
                 </Box>
                 <Box>
                   <Typography variant="caption" color="text.secondary">

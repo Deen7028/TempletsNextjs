@@ -7,28 +7,31 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// เปิดใช้งาน Legacy Timestamp Behavior เพื่อให้ Npgsql บันทึก DateTime (UTC หรือ Local) ลงคอลัมน์ timestamp ได้อย่างราบรื่น
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 // Add services to the container.
 var sAllowedOriginsSetting = builder.Configuration["AllowedOrigins"];
 string[] lstAllowedOrigins = string.IsNullOrEmpty(sAllowedOriginsSetting) || sAllowedOriginsSetting == "*"
-    ? new[] { "http://localhost:3000", "http://10.52.81.115:3000" }
+    ? new[] { "http://localhost:3000" }
     : sAllowedOriginsSetting.Split(';', StringSplitOptions.RemoveEmptyEntries);
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowNextJs", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "http://10.52.81.115:3000")
-              .SetIsOriginAllowed(_ => true)
+        policy.WithOrigins(lstAllowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
     });
 });
 
-// Configure Database Connection (MySQL)
-var connectionString = builder.Configuration.GetConnectionString("WebAppConnection");
+// Configure Database Connection (PostgreSQL - Neon)
+var connectionString = builder.Configuration.GetConnectionString("WebAppConnection")
+    ?? throw new InvalidOperationException("Connection string 'WebAppConnection' not found.");
 builder.Services.AddDbContext<PoDbContext>(options =>
-    options.UseMySQL(connectionString ?? "Server=localhost;Port=3306;Database=6620310001_po;Uid=6620310001;Pwd=6620310001;")
+    options.UseNpgsql(connectionString)
 );
 
 // Register Application Services
@@ -39,7 +42,10 @@ builder.Services.AddOpenApi();
 
 // JWT Authentication Configuration
 var jwtSettings = builder.Configuration.GetSection("Jwt");
-var key = Encoding.UTF8.GetBytes(jwtSettings["Key"] ?? "YourSuperSecretStrongKeyForJwt1234567890!");
+var sJwtKey = jwtSettings["Key"] 
+    ?? (builder.Environment.IsDevelopment() ? "YourSuperSecretStrongKeyForJwt1234567890!" : null)
+    ?? throw new InvalidOperationException("JWT Key is missing from configuration.");
+var key = Encoding.UTF8.GetBytes(sJwtKey);
 
 builder.Services.AddAuthentication(options =>
 {

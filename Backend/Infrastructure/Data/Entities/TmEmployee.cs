@@ -17,13 +17,13 @@ public partial class TmEmployee
 
     public string SRole { get; set; } = "Employee";
 
-    public int NDepartmentId { get; set; }
+    public int? NDepartmentId { get; set; }
 
     public bool IsActive { get; set; } = true;
 
     public DateTime DtCreatedAt { get; set; }
 
-    public virtual TmDepartment NDepartment { get; set; } = null!;
+    public virtual TmDepartment? NDepartment { get; set; }
 
     public virtual ICollection<TbPurchaseOrder> TbPurchaseOrderNApprovedByNavigations { get; set; } = new List<TbPurchaseOrder>();
 

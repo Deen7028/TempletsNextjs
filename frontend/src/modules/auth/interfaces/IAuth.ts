@@ -37,7 +37,7 @@ export interface IRegisterRequest {
   sEmail: string;
   sPassword: string;
   sConfirmPassword?: string;
-  nDepartmentId: number;
+  nDepartmentId?: number;
   sRole?: UserRole;
 }
 

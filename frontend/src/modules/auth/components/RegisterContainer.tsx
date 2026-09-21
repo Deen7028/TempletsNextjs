@@ -88,10 +88,7 @@ export const RegisterContainer: React.FC = () => {
       errors.sConfirmPassword = 'รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน';
     }
 
-    if (!objForm.nDepartmentId || objForm.nDepartmentId <= 0) {
-      errors.nDepartmentId = 'กรุณาเลือกสังกัดแผนก';
-    }
-
+    // แผนกไม่บังคับตอนสมัครสมาชิก (สามารถเลือกภายหลังที่หน้าโปรไฟล์ได้)
     setObjErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -99,9 +96,6 @@ export const RegisterContainer: React.FC = () => {
   useEffect(() => {
     authService.getDepartments().then((data) => {
       setLstDepartments(data);
-      if (data.length > 0) {
-        setObjForm((prev) => ({ ...prev, nDepartmentId: data[0].nDepartmentId }));
-      }
     });
   }, []);
 
@@ -288,26 +282,24 @@ export const RegisterContainer: React.FC = () => {
               sx={{ mb: 2 }}
             />
 
-            {/* สังกัดแผนก (Role ถูกกำหนดอัตโนมัติเป็น Employee) */}
-            <FormControl fullWidth size="small" required error={!!objErrors.nDepartmentId} sx={{ mb: 2 }}>
-              <InputLabel id="dept-label">สังกัดแผนก</InputLabel>
+            {/* สังกัดแผนก (ไม่บังคับ สามารถเลือกภายหลังได้) */}
+            <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+              <InputLabel id="dept-label">สังกัดแผนก (ระบุภายหลังได้)</InputLabel>
               <Select
                 labelId="dept-label"
-                label="สังกัดแผนก"
+                label="สังกัดแผนก (ระบุภายหลังได้)"
                 value={objForm.nDepartmentId || ''}
                 onChange={handleDepartmentChange}
               >
+                <MenuItem value="">
+                  <em>-- ไม่ระบุ / เลือกภายหลัง --</em>
+                </MenuItem>
                 {lstDepartments.map((dept) => (
                   <MenuItem key={dept.nDepartmentId} value={dept.nDepartmentId}>
                     {dept.sDepartmentName}
                   </MenuItem>
                 ))}
               </Select>
-              {objErrors.nDepartmentId && (
-                <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.8, fontSize: '0.75rem' }}>
-                  {objErrors.nDepartmentId}
-                </Typography>
-              )}
             </FormControl>
 
             {/* รหัสผ่าน & ยืนยันรหัสผ่าน */}

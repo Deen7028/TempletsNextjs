@@ -6,7 +6,7 @@ public class RegisterDto
     public string SLastName { get; set; } = string.Empty;
     public string SEmail { get; set; } = string.Empty;
     public string SPassword { get; set; } = string.Empty;
-    public int NDepartmentId { get; set; }
+    public int? NDepartmentId { get; set; }
     public string SRole { get; set; } = "Employee"; // "Employee" หรือ "Admin"
 }
 
@@ -24,7 +24,7 @@ public class UserDto
     public string SLastName { get; set; } = string.Empty;
     public string SEmail { get; set; } = string.Empty;
     public string SRole { get; set; } = string.Empty;
-    public int NDepartmentId { get; set; }
+    public int? NDepartmentId { get; set; }
     public string? SDepartmentName { get; set; }
 }
 

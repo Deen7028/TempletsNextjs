@@ -58,13 +58,15 @@ public class AuthService : IAuthService
         // 2. Hash Password ด้วย BCrypt ตามมาตรฐาน Security
         var sPasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.SPassword);
 
+        int? nDeptId = (dto.NDepartmentId.HasValue && dto.NDepartmentId.Value > 0) ? dto.NDepartmentId.Value : null;
+
         var employee = new TmEmployee
         {
             SFirstName = dto.SFirstName.Trim(),
             SLastName = dto.SLastName.Trim(),
             SEmail = sNormalizedEmail,
             SPasswordHash = sPasswordHash,
-            NDepartmentId = dto.NDepartmentId,
+            NDepartmentId = nDeptId,
             SRole = sRole,
             IsActive = true,
             DtCreatedAt = DateTime.UtcNow
@@ -73,7 +75,7 @@ public class AuthService : IAuthService
         _context.TmEmployees.Add(employee);
         await _context.SaveChangesAsync();
 
-        var department = await _context.TmDepartments.FindAsync(dto.NDepartmentId);
+        var department = nDeptId.HasValue ? await _context.TmDepartments.FindAsync(nDeptId.Value) : null;
 
         var userDto = new UserDto
         {
@@ -277,7 +279,9 @@ public class AuthService : IAuthService
 
     {
         var jwtSettings = _configuration.GetSection("Jwt");
-        var keyStr = jwtSettings["Key"] ?? "YourSuperSecretStrongKeyForJwt1234567890!";
+        var keyStr = jwtSettings["Key"] 
+            ?? (_configuration.GetValue<string>("ASPNETCORE_ENVIRONMENT") == "Development" ? "YourSuperSecretStrongKeyForJwt1234567890!" : null)
+            ?? throw new InvalidOperationException("JWT Key is missing from configuration.");
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyStr));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -285,16 +289,20 @@ public class AuthService : IAuthService
 
         var sDisplayName = $"{user.SFirstName} {user.SLastName}".Trim();
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.NEmployeeId.ToString()),
             new Claim("firstName", user.SFirstName),
             new Claim("lastName", user.SLastName),
             new Claim(ClaimTypes.Name, sDisplayName),
             new Claim(ClaimTypes.Email, user.SEmail),
-            new Claim(ClaimTypes.Role, user.SRole),
-            new Claim("departmentId", user.NDepartmentId.ToString())
+            new Claim(ClaimTypes.Role, user.SRole)
         };
+
+        if (user.NDepartmentId.HasValue)
+        {
+            claims.Add(new Claim("departmentId", user.NDepartmentId.Value.ToString()));
+        }
 
         var token = new JwtSecurityToken(
             issuer: jwtSettings["Issuer"],
