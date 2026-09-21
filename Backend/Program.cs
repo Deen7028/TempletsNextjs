@@ -97,4 +97,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+app.MapGet("/", () => Results.Ok(new { status = "online", message = "PO API is running" }));
+
 app.Run();
