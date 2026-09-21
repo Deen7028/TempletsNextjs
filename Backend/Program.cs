@@ -7,7 +7,17 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// เปิดใช้งาน Legacy Timestamp Behavior เพื่อให้ Npgsql บันทึก DateTime (UTC หรือ Local) ลงคอลัมน์ timestamp ได้อย่างราบรื่น
+// อนุญาตทุก Hostname เพื่อไม่ให้ติด HTTP 400 Bad Request จาก Kestrel HostFiltering
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.AllowAlternateSchemes = true;
+});
+builder.Host.ConfigureHostOptions(options =>
+{
+    options.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
+});
+
+// เปิดใช้งาน Legacy Timestamp Behavior เพื่อให้ Npgsql บันทึก DateTime ลงคอลัมน์ timestamp ได้อย่างราบรื่น
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 // Add services to the container.
