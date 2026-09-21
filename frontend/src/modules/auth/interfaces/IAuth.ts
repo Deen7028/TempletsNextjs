@@ -13,7 +13,7 @@ export interface IUser {
   sLastName: string;
   sEmail: string;
   sRole: UserRole;
-  nDepartmentId: number;
+  nDepartmentId?: number | null;
   sDepartmentName?: string;
   isActive?: boolean;
 }
@@ -24,7 +24,7 @@ export interface IEmployeeItem {
   sLastName?: string;
   sEmail: string;
   sRole: string;
-  nDepartmentId: number;
+  nDepartmentId?: number | null;
   sDepartmentName?: string;
   sDepartmentCode?: string;
   isActive: boolean;

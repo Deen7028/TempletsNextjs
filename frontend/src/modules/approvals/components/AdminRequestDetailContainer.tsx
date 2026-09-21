@@ -352,103 +352,185 @@ export const AdminRequestDetailContainer: React.FC<IAdminRequestDetailProps> = (
       </Card>
 
       {/* ตารางรายการสินค้า */}
+      {/* ตารางรายการสินค้า */}
       <Box sx={{ mb: 3 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#174785', mb: 1.5 }}>
           รายการสินค้า
         </Typography>
 
-        <TableContainer
-          component={Paper}
-          elevation={0}
-          sx={{
-            borderRadius: 3,
-            border: '1px solid #e2e8f0',
-            overflow: 'hidden',
-          }}
-        >
-          <Table size="small">
-            <TableHead sx={{ bgcolor: '#f8fafc' }}>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.5, width: 110 }}>รหัสสินค้า</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.5 }}>รายการสินค้า</TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.5, textAlign: 'center', width: 80 }}>
-                  จำนวน
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.5, textAlign: 'center', width: 80 }}>
-                  หน่วย
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.5, textAlign: 'right', width: 110 }}>
-                  ราคา/หน่วย
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.5, textAlign: 'right', width: 120 }}>
-                  รวมเงิน
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {objPR.lstItems?.map((item, index) => {
-                const unitPrice = Number(item.dUnitPrice || 0);
-                const lineTotal = Number(item.dLineTotal || (unitPrice * item.nQuantity));
-                return (
-                  <TableRow key={item.nRequestItemId || index} hover>
-                    <TableCell sx={{ py: 1.8 }}>
-                      <Chip
-                        label={item.sProductCode || (item.nProductId ? `90142${item.nProductId}` : '-')}
-                        size="small"
-                        sx={{
-                          fontWeight: 700,
-                          fontSize: '0.75rem',
-                          bgcolor: '#f1f5f9',
-                          color: '#1e293b',
-                          borderRadius: 1.5,
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ py: 1.8, fontWeight: 600, color: '#1e293b' }}>
-                      {item.sSnapshotProductName}
-                    </TableCell>
-                    <TableCell align="center" sx={{ py: 1.8, fontWeight: 700, color: '#1e293b' }}>
-                      {item.nQuantity}
-                    </TableCell>
-                    <TableCell align="center" sx={{ py: 1.8 }}>
-                      <Chip
-                        label={item.sSnapshotUnit}
-                        size="small"
-                        sx={{
-                          fontWeight: 600,
-                          fontSize: '0.75rem',
-                          bgcolor: '#ecfdf5',
-                          color: '#047857',
-                          borderRadius: 1.5,
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell align="right" sx={{ py: 1.8, fontWeight: 600, color: '#475569' }}>
-                      ฿{unitPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </TableCell>
-                    <TableCell align="right" sx={{ py: 1.8, fontWeight: 700, color: '#0f766e' }}>
-                      ฿{lineTotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+        {/* Desktop & Tablet Table */}
+        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+          <TableContainer
+            component={Paper}
+            elevation={0}
+            sx={{
+              borderRadius: 3,
+              border: '1px solid #e2e8f0',
+              overflow: 'hidden',
+            }}
+          >
+            <Table size="small">
+              <TableHead sx={{ bgcolor: '#f8fafc' }}>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.5, width: 110 }}>รหัสสินค้า</TableCell>
+                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.5 }}>รายการสินค้า</TableCell>
+                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.5, textAlign: 'center', width: 80 }}>
+                    จำนวน
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.5, textAlign: 'center', width: 80 }}>
+                    หน่วย
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.5, textAlign: 'right', width: 110 }}>
+                    ราคา/หน่วย
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.5, textAlign: 'right', width: 120 }}>
+                    รวมเงิน
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {objPR.lstItems?.map((item, index) => {
+                  const unitPrice = Number(item.dUnitPrice || 0);
+                  const lineTotal = Number(item.dLineTotal || (unitPrice * item.nQuantity));
+                  return (
+                    <TableRow key={item.nRequestItemId || index} hover>
+                      <TableCell sx={{ py: 1.8 }}>
+                        <Chip
+                          label={item.sProductCode || (item.nProductId ? `90142${item.nProductId}` : '-')}
+                          size="small"
+                          sx={{
+                            fontWeight: 700,
+                            fontSize: '0.75rem',
+                            bgcolor: '#f1f5f9',
+                            color: '#1e293b',
+                            borderRadius: 1.5,
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ py: 1.8, fontWeight: 600, color: '#1e293b' }}>
+                        {item.sSnapshotProductName}
+                      </TableCell>
+                      <TableCell align="center" sx={{ py: 1.8, fontWeight: 700, color: '#1e293b' }}>
+                        {item.nQuantity}
+                      </TableCell>
+                      <TableCell align="center" sx={{ py: 1.8 }}>
+                        <Chip
+                          label={item.sSnapshotUnit}
+                          size="small"
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: '0.75rem',
+                            bgcolor: '#ecfdf5',
+                            color: '#047857',
+                            borderRadius: 1.5,
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell align="right" sx={{ py: 1.8, fontWeight: 600, color: '#475569' }}>
+                        ฿{unitPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </TableCell>
+                      <TableCell align="right" sx={{ py: 1.8, fontWeight: 700, color: '#0f766e' }}>
+                        ฿{lineTotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
 
-              {/* แถวสรุปยอดเงินรวมทั้งหมด */}
-              <TableRow sx={{ bgcolor: '#f8fafc' }}>
-                <TableCell colSpan={4} align="right" sx={{ py: 1.8, fontWeight: 700, color: '#334155' }}>
-                  ยอดรวมประมาณการทั้งสิ้น :
-                </TableCell>
-                <TableCell colSpan={2} align="right" sx={{ py: 1.8, fontWeight: 800, color: '#0f766e', fontSize: '1.05rem' }}>
-                  ฿{Number(
-                    objPR.dTotalAmount ?? 
-                    objPR.lstItems?.reduce((acc, it) => acc + Number(it.dLineTotal || ((it.dUnitPrice || 0) * it.nQuantity)), 0) ?? 
-                    0
-                  ).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
+                {/* แถวสรุปยอดเงินรวมทั้งหมด */}
+                <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                  <TableCell colSpan={4} align="right" sx={{ py: 1.8, fontWeight: 700, color: '#334155' }}>
+                    ยอดรวมประมาณการทั้งสิ้น :
+                  </TableCell>
+                  <TableCell colSpan={2} align="right" sx={{ py: 1.8, fontWeight: 800, color: '#0f766e', fontSize: '1.05rem' }}>
+                    ฿{Number(
+                      objPR.dTotalAmount ?? 
+                      objPR.lstItems?.reduce((acc, it) => acc + Number(it.dLineTotal || ((it.dUnitPrice || 0) * it.nQuantity)), 0) ?? 
+                      0
+                    ).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+
+        {/* Mobile Cards for Items */}
+        <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: 1.5 }}>
+          {objPR.lstItems?.map((item, index) => {
+            const unitPrice = Number(item.dUnitPrice || 0);
+            const lineTotal = Number(item.dLineTotal || (unitPrice * item.nQuantity));
+            return (
+              <Card
+                key={item.nRequestItemId || index}
+                elevation={0}
+                sx={{
+                  p: 1.8,
+                  borderRadius: 2.5,
+                  border: '1px solid #e2e8f0',
+                  bgcolor: '#ffffff',
+                }}
+              >
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: '#1e293b', flex: 1, mr: 1 }}>
+                    {item.sSnapshotProductName}
+                  </Typography>
+                  <Chip
+                    label={item.sProductCode || (item.nProductId ? `90142${item.nProductId}` : '-')}
+                    size="small"
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: '0.72rem',
+                      height: 22,
+                      bgcolor: '#f1f5f9',
+                      color: '#1e293b',
+                    }}
+                  />
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 0.5, borderTop: '1px dashed #f1f5f9' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="caption" color="text.secondary">
+                      จำนวน:
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: '#1e293b' }}>
+                      {item.nQuantity} {item.sSnapshotUnit}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
+                      (@฿{unitPrice.toLocaleString('th-TH', { minimumFractionDigits: 2 })})
+                    </Typography>
+                  </Box>
+                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#0f766e' }}>
+                    ฿{lineTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                  </Typography>
+                </Box>
+              </Card>
+            );
+          })}
+
+          {/* Mobile Grand Total Summary Card */}
+          <Card
+            elevation={0}
+            sx={{
+              p: 2,
+              borderRadius: 2.5,
+              bgcolor: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <Typography variant="body2" sx={{ fontWeight: 700, color: '#334155' }}>
+              ยอดรวมประมาณการทั้งสิ้น:
+            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f766e', fontSize: '1.15rem' }}>
+              ฿{Number(
+                objPR.dTotalAmount ?? 
+                objPR.lstItems?.reduce((acc, it) => acc + Number(it.dLineTotal || ((it.dUnitPrice || 0) * it.nQuantity)), 0) ?? 
+                0
+              ).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </Typography>
+          </Card>
+        </Box>
       </Box>
 
       {/* 3 ปุ่มคำสั่งหลัก (อนุมัติ, ส่งกลับแก้ไข, ไม่อนุมัติ) */}

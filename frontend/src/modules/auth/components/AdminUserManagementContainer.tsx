@@ -195,97 +195,250 @@ export const AdminUserManagementContainer: React.FC = () => {
           </Typography>
         </Card>
       ) : (
-        <TableContainer
-          component={Paper}
-          elevation={0}
-          sx={{
-            borderRadius: 3,
-            border: '1px solid #e2e8f0',
-            overflow: 'hidden',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
-          }}
-        >
-          <Table size="small">
-            <TableHead sx={{ bgcolor: '#f8fafc' }}>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 70, textAlign: 'center' }}>
-                  ID
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8 }}>
-                  ผู้ใช้งาน
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8 }}>
-                  อีเมล (Login)
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 170 }}>
-                  แผนกสังกัด
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 130, textAlign: 'center' }}>
-                  สิทธิ์ (Role)
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 140, textAlign: 'center' }}>
-                  สถานะบัญชี
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 110, textAlign: 'center' }}>
-                  จัดการ
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredEmployees.map((emp) => (
-                <TableRow
-                  key={emp.nEmployeeId}
-                  hover
-                  sx={{
-                    bgcolor: !emp.isActive ? 'rgba(241, 245, 249, 0.6)' : 'inherit',
-                  }}
-                >
-                  <TableCell align="center" sx={{ py: 1.8, color: '#64748b' }}>
-                    {emp.nEmployeeId}
-                  </TableCell>
-                  <TableCell sx={{ py: 1.8 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-                      <Avatar
-                        sx={{
-                          width: 32,
-                          height: 32,
-                          fontSize: '0.8rem',
-                          fontWeight: 700,
-                          bgcolor: emp.sRole === 'Admin' ? '#174785' : '#0284c7',
-                        }}
-                      >
-                        {(emp.sFirstName?.[0] || 'U').toUpperCase()}
-                      </Avatar>
-                      <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 600, color: emp.isActive ? '#1e293b' : '#94a3b8' }}>
-                          {emp.sFirstName} {emp.sLastName}
-                        </Typography>
-                      </Box>
+        <>
+          {/* Desktop & Tablet View Table */}
+          <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+            <TableContainer
+              component={Paper}
+              elevation={0}
+              sx={{
+                borderRadius: 3,
+                border: '1px solid #e2e8f0',
+                overflow: 'hidden',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+              }}
+            >
+              <Table size="small">
+                <TableHead sx={{ bgcolor: '#f8fafc' }}>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 70, textAlign: 'center' }}>
+                      ID
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8 }}>
+                      ผู้ใช้งาน
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8 }}>
+                      อีเมล (Login)
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 170 }}>
+                      แผนกสังกัด
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 130, textAlign: 'center' }}>
+                      สิทธิ์ (Role)
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 140, textAlign: 'center' }}>
+                      สถานะบัญชี
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 110, textAlign: 'center' }}>
+                      จัดการ
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredEmployees.map((emp) => (
+                    <TableRow
+                      key={emp.nEmployeeId}
+                      hover
+                      sx={{
+                        bgcolor: !emp.isActive ? 'rgba(241, 245, 249, 0.6)' : 'inherit',
+                      }}
+                    >
+                      <TableCell align="center" sx={{ py: 1.8, color: '#64748b' }}>
+                        {emp.nEmployeeId}
+                      </TableCell>
+                      <TableCell sx={{ py: 1.8 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                          <Avatar
+                            sx={{
+                              width: 32,
+                              height: 32,
+                              fontSize: '0.8rem',
+                              fontWeight: 700,
+                              bgcolor: emp.sRole === 'Admin' ? '#174785' : '#0284c7',
+                            }}
+                          >
+                            {(emp.sFirstName?.[0] || 'U').toUpperCase()}
+                          </Avatar>
+                          <Box>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: emp.isActive ? '#1e293b' : '#94a3b8' }}>
+                              {emp.sFirstName} {emp.sLastName}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </TableCell>
+                      <TableCell sx={{ py: 1.8, color: emp.isActive ? '#475569' : '#94a3b8', fontSize: '0.88rem' }}>
+                        {emp.sEmail}
+                      </TableCell>
+                      <TableCell sx={{ py: 1.8 }}>
+                        <Chip
+                          label={emp.sDepartmentName || `แผนก ID ${emp.nDepartmentId}`}
+                          size="small"
+                          sx={{
+                            fontSize: '0.75rem',
+                            bgcolor: '#f1f5f9',
+                            color: '#334155',
+                            fontWeight: 500,
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell align="center" sx={{ py: 1.8 }}>
+                        {emp.sRole === 'Admin' ? (
+                          <Chip
+                            icon={<AdminPanelSettingsIcon sx={{ fontSize: '16px !important' }} />}
+                            label="Admin"
+                            size="small"
+                            sx={{
+                              fontWeight: 700,
+                              bgcolor: '#fef3c7',
+                              color: '#b45309',
+                              borderRadius: 1.5,
+                            }}
+                          />
+                        ) : (
+                          <Chip
+                            icon={<PersonIcon sx={{ fontSize: '16px !important' }} />}
+                            label="Employee"
+                            size="small"
+                            sx={{
+                              fontWeight: 600,
+                              bgcolor: '#e0f2fe',
+                              color: '#0369a1',
+                              borderRadius: 1.5,
+                            }}
+                          />
+                        )}
+                      </TableCell>
+                      <TableCell align="center" sx={{ py: 1.8 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                          <Tooltip title={emp.isActive ? 'คลิกเพื่อปิดใช้งานบัญชี' : 'คลิกเพื่อเปิดใช้งานบัญชี'}>
+                            <Switch
+                              checked={emp.isActive}
+                              onChange={() => handleToggleStatus(emp)}
+                              size="small"
+                              color="success"
+                            />
+                          </Tooltip>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontWeight: 700,
+                              color: emp.isActive ? '#16a34a' : '#dc2626',
+                              minWidth: 55,
+                              textAlign: 'left',
+                            }}
+                          >
+                            {emp.isActive ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell align="center" sx={{ py: 1.8 }}>
+                        <Tooltip title="แก้ไขข้อมูลบัญชีผู้ใช้">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleOpenEdit(emp)}
+                            sx={{ color: '#2563eb', '&:hover': { bgcolor: '#eff6ff' } }}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
+
+          {/* Mobile View Cards */}
+          <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: 1.5 }}>
+            {filteredEmployees.map((emp) => (
+              <Card
+                key={emp.nEmployeeId}
+                elevation={0}
+                sx={{
+                  borderRadius: 3,
+                  border: '1px solid #e2e8f0',
+                  bgcolor: !emp.isActive ? 'rgba(241, 245, 249, 0.6)' : '#ffffff',
+                  p: 2,
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                }}
+              >
+                {/* หัวการ์ด: รูป, ชื่อ, ID, และปุ่มแก้ไข */}
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1.5 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Avatar
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        fontSize: '1rem',
+                        fontWeight: 700,
+                        bgcolor: emp.sRole === 'Admin' ? '#174785' : '#0284c7',
+                      }}
+                    >
+                      {(emp.sFirstName?.[0] || 'U').toUpperCase()}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: emp.isActive ? '#1e293b' : '#94a3b8' }}>
+                        {emp.sFirstName} {emp.sLastName}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: '#64748b' }}>
+                        รหัสพนักงาน: #{emp.nEmployeeId}
+                      </Typography>
                     </Box>
-                  </TableCell>
-                  <TableCell sx={{ py: 1.8, color: emp.isActive ? '#475569' : '#94a3b8', fontSize: '0.88rem' }}>
-                    {emp.sEmail}
-                  </TableCell>
-                  <TableCell sx={{ py: 1.8 }}>
+                  </Box>
+
+                  <IconButton
+                    size="small"
+                    onClick={() => handleOpenEdit(emp)}
+                    sx={{ color: '#2563eb', bgcolor: '#eff6ff' }}
+                  >
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+
+                {/* อีเมลและแผนก */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.8, mb: 1.5 }}>
+                  <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.85rem' }}>
+                    <b>อีเมล:</b> {emp.sEmail}
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.85rem' }}>
+                      <b>แผนก:</b>
+                    </Typography>
                     <Chip
                       label={emp.sDepartmentName || `แผนก ID ${emp.nDepartmentId}`}
                       size="small"
                       sx={{
-                        fontSize: '0.75rem',
+                        fontSize: '0.72rem',
+                        height: 22,
                         bgcolor: '#f1f5f9',
                         color: '#334155',
                         fontWeight: 500,
                       }}
                     />
-                  </TableCell>
-                  <TableCell align="center" sx={{ py: 1.8 }}>
+                  </Box>
+                </Box>
+
+                {/* แถวล่าง: Role และ Toggle Switch */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    pt: 1.5,
+                    borderTop: '1px solid #f1f5f9',
+                  }}
+                >
+                  <Box>
                     {emp.sRole === 'Admin' ? (
                       <Chip
-                        icon={<AdminPanelSettingsIcon sx={{ fontSize: '16px !important' }} />}
+                        icon={<AdminPanelSettingsIcon sx={{ fontSize: '15px !important' }} />}
                         label="Admin"
                         size="small"
                         sx={{
                           fontWeight: 700,
+                          fontSize: '0.75rem',
+                          height: 24,
                           bgcolor: '#fef3c7',
                           color: '#b45309',
                           borderRadius: 1.5,
@@ -293,69 +446,56 @@ export const AdminUserManagementContainer: React.FC = () => {
                       />
                     ) : (
                       <Chip
-                        icon={<PersonIcon sx={{ fontSize: '16px !important' }} />}
+                        icon={<PersonIcon sx={{ fontSize: '15px !important' }} />}
                         label="Employee"
                         size="small"
                         sx={{
                           fontWeight: 600,
+                          fontSize: '0.75rem',
+                          height: 24,
                           bgcolor: '#e0f2fe',
                           color: '#0369a1',
                           borderRadius: 1.5,
                         }}
                       />
                     )}
-                  </TableCell>
-                  <TableCell align="center" sx={{ py: 1.8 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
-                      <Tooltip title={emp.isActive ? 'คลิกเพื่อปิดใช้งานบัญชี' : 'คลิกเพื่อเปิดใช้งานบัญชี'}>
-                        <Switch
-                          checked={emp.isActive}
-                          onChange={() => handleToggleStatus(emp)}
-                          size="small"
-                          color="success"
-                        />
-                      </Tooltip>
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          fontWeight: 700,
-                          color: emp.isActive ? '#16a34a' : '#dc2626',
-                          minWidth: 55,
-                          textAlign: 'left',
-                        }}
-                      >
-                        {emp.isActive ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
-                      </Typography>
-                    </Box>
-                  </TableCell>
-                  <TableCell align="center" sx={{ py: 1.8 }}>
-                    <Tooltip title="แก้ไขข้อมูลบัญชีผู้ใช้">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleOpenEdit(emp)}
-                        sx={{ color: '#2563eb', '&:hover': { bgcolor: '#eff6ff' } }}
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Switch
+                      checked={emp.isActive}
+                      onChange={() => handleToggleStatus(emp)}
+                      size="small"
+                      color="success"
+                    />
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontWeight: 700,
+                        color: emp.isActive ? '#16a34a' : '#dc2626',
+                        minWidth: 50,
+                      }}
+                    >
+                      {emp.isActive ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Card>
+            ))}
+          </Box>
+        </>
       )}
 
       {/* Modal แก้ไขบัญชีผู้ใช้ */}
       <Dialog open={isEditOpen} onClose={handleCloseEdit} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 700, color: '#174785' }}>
+        <DialogTitle sx={{ fontWeight: 700, color: '#174785', fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
           แก้ไขข้อมูลบัญชีผู้ใช้ ({editEmployee?.sEmail})
         </DialogTitle>
         <DialogContent dividers>
           {sEditError && <Alert severity="error" sx={{ mb: 2 }}>{sEditError}</Alert>}
           {editEmployee && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, mt: 1 }}>
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
                 <TextField
                   fullWidth
                   required
@@ -378,17 +518,17 @@ export const AdminUserManagementContainer: React.FC = () => {
                 fullWidth
                 disabled
                 label="อีเมล (ใช้เข้าสู่ระบบ)"
-                value={editEmployee.sEmail}
+                value={editEmployee.sEmail || ''}
                 size="small"
               />
 
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
                 {/* เลือกสิทธิ์การใช้งาน (Role) */}
                 <FormControl fullWidth size="small">
                   <InputLabel>สิทธิ์การใช้งาน (Role)</InputLabel>
                   <Select
                     label="สิทธิ์การใช้งาน (Role)"
-                    value={editEmployee.sRole}
+                    value={editEmployee.sRole || 'Employee'}
                     onChange={(e) => setEditEmployee({ ...editEmployee, sRole: e.target.value })}
                   >
                     <MenuItem value="Employee">
@@ -411,9 +551,18 @@ export const AdminUserManagementContainer: React.FC = () => {
                   <InputLabel>สังกัดแผนก</InputLabel>
                   <Select
                     label="สังกัดแผนก"
-                    value={editEmployee.nDepartmentId}
-                    onChange={(e) => setEditEmployee({ ...editEmployee, nDepartmentId: Number(e.target.value) })}
+                    value={editEmployee.nDepartmentId ?? ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setEditEmployee({
+                        ...editEmployee,
+                        nDepartmentId: !val ? null : Number(val),
+                      });
+                    }}
                   >
+                    <MenuItem value="">
+                      <em>-- ไม่ระบุแผนก --</em>
+                    </MenuItem>
                     {lstDepartments.map((d) => (
                       <MenuItem key={d.nDepartmentId} value={d.nDepartmentId}>
                         {d.sDepartmentName} ({d.sDepartmentCode})

@@ -48,7 +48,7 @@ public class EmployeesController : ControllerBase
         public string? SFirstName { get; set; }
         public string? SLastName { get; set; }
         public string SRole { get; set; } = "Employee";
-        public int NDepartmentId { get; set; }
+        public int? NDepartmentId { get; set; }
         public bool IsActive { get; set; } = true;
     }
 

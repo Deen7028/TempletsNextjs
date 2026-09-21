@@ -101,7 +101,7 @@ export const authService = {
     sFirstName?: string;
     sLastName?: string;
     sRole: string;
-    nDepartmentId: number;
+    nDepartmentId?: number | null;
     isActive: boolean;
   }): Promise<{ status: string; message: string; data?: any }> {
     return await apiClient.post<{ status: string; message: string; data?: any }>('/api/employees/update', objPayload);
