@@ -1,0 +1,6 @@
+{
+  "sUsername": "admin",
+  "sPasswordHash": "123456",
+  "sRole": "Admin",
+  "isActive": true
+}
