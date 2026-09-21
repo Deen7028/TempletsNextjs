@@ -5,6 +5,7 @@ type ApiClientFunction = <T = IApiResponse>(endpoint: string, options?: RequestI
 interface ApiClient extends ApiClientFunction {
     get: <T = IApiResponse>(endpoint: string, options?: RequestInit) => Promise<T>;
     post: <T = IApiResponse>(endpoint: string, data?: object | string | number | boolean, options?: RequestInit) => Promise<T>;
+    delete: <T = IApiResponse>(endpoint: string, options?: RequestInit) => Promise<T>;
 }
 
 // ตัวเรียกขอข้อมูล HTTP API พื้นฐาน (Core fetch wrapper)
