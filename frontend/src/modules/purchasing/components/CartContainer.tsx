@@ -19,6 +19,7 @@ import {
   Divider,
   Snackbar,
   Alert,
+  TextField,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
@@ -26,6 +27,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../context/CartContext';
@@ -36,11 +38,56 @@ import { IPurchaseRequestItem } from '../interfaces/IPurchasing';
 export const CartContainer: React.FC = () => {
   const objRouter = useRouter();
   const { objUser } = useAuth();
-  const { cartItems, updateCartQty, removeFromCart, clearCart, nTotalItems } = useCart();
+  const { cartItems, addToCart, updateCartQty, removeFromCart, clearCart, nTotalItems } = useCart();
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [sNotification, setSNotification] = useState<string>('');
   const [sError, setSError] = useState<string>('');
+
+  // สำหรับเพิ่มรายการสินค้าที่ไม่มีในระบบ (Custom / Off-Catalog Item)
+  const [customItem, setCustomItem] = useState<{
+    sProductName: string;
+    sUnit: string;
+    nQuantity: number | string;
+    sRemarks: string;
+  }>({
+    sProductName: '',
+    sUnit: '',
+    nQuantity: 1,
+    sRemarks: '',
+  });
+
+  const handleAddCustomItem = () => {
+    if (!customItem.sProductName.trim()) {
+      setSError('กรุณาระบุชื่อสินค้าหรือรายการที่ต้องการสั่ง');
+      return;
+    }
+    const qty = Number(customItem.nQuantity);
+    if (isNaN(qty) || qty <= 0) {
+      setSError('กรุณาระบุจำนวนสินค้าที่ถูกต้อง (มากกว่า 0)');
+      return;
+    }
+
+    const sUnitVal = customItem.sUnit.trim() || 'ชิ้น';
+    // สร้าง Product จำลอง (nProductId ติดลบเพื่อให้มี ID ไม่ซ้ำในตะกร้า)
+    const mockProduct: any = {
+      nProductId: -Date.now(),
+      sProductCode: 'CUSTOM',
+      sProductName: customItem.sProductName.trim(),
+      sUnit: sUnitVal,
+      sCategory: 'รายการพิเศษ / สั่งนอกระบบ',
+      sRemarks: customItem.sRemarks.trim() || undefined,
+    };
+
+    addToCart(mockProduct, qty);
+    setCustomItem({
+      sProductName: '',
+      sUnit: '',
+      nQuantity: 1,
+      sRemarks: '',
+    });
+    setSNotification(`เพิ่มรายการ "${mockProduct.sProductName}" ลงในรายการขอซื้อแล้ว`);
+  };
 
   // ยืนยันการส่งคำขอสั่งซื้อ (PR)
   const handleConfirmSubmit = async () => {
@@ -62,20 +109,23 @@ export const CartContainer: React.FC = () => {
     setIsSubmitting(true);
     setSError('');
 
-    const prItems: IPurchaseRequestItem[] = cartItems.map((item) => {
-      const unitPrice = Number(item.objProduct.dUnitPrice || 0);
-      const lineTotal = unitPrice * item.nQuantity;
-      return {
-        nProductId: item.objProduct.nProductId,
-        sSnapshotProductName: item.objProduct.sProductName,
-        sSnapshotUnit: item.objProduct.sUnit,
-        dUnitPrice: unitPrice,
-        nQuantity: item.nQuantity,
-        dLineTotal: lineTotal,
-      };
-    });
-
     try {
+      const prItems: IPurchaseRequestItem[] = [];
+
+      for (const item of cartItems) {
+        // หากเป็นสินค้าพิเศษที่กรอกเองนอกระบบ (nProductId < 0) ให้ส่งเป็น null เพื่อไม่ให้ไปเพิ่มในตาราง Product
+        const nProdId = item.objProduct.nProductId > 0 ? item.objProduct.nProductId : null;
+
+        prItems.push({
+          nProductId: nProdId,
+          sProductCode: nProdId ? item.objProduct.sProductCode : 'OFF-CATALOG',
+          sSnapshotProductName: item.objProduct.sProductName,
+          sSnapshotUnit: item.objProduct.sUnit,
+          nQuantity: item.nQuantity,
+          sRemarks: item.objProduct.sRemarks || item.sRemarks || null,
+        });
+      }
+
       const res = await purchasingService.createPurchaseRequest({
         nDepartmentId: objUser.nDepartmentId,
         nRequestedByEmployeeId: objUser.nEmployeeId,
@@ -157,6 +207,124 @@ export const CartContainer: React.FC = () => {
         </Alert>
       )}
 
+      {/* กล่องแบบฟอร์ม: กรณีพนักงานต้องการสั่งของที่ไม่มีอยู่ในระบบ (Off-Catalog / Custom Item) */}
+      <Card
+        sx={{
+          mb: 3,
+          borderRadius: 3,
+          border: '1px solid #bfdbfe',
+          bgcolor: '#f8fafc',
+          boxShadow: '0 2px 8px rgba(37,99,235,0.06)',
+          overflow: 'hidden',
+        }}
+      >
+        <Box
+          sx={{
+            px: 2.5,
+            py: 1.5,
+            bgcolor: '#eff6ff',
+            borderBottom: '1px solid #dbeafe',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.2,
+          }}
+        >
+          <PlaylistAddIcon sx={{ color: '#2563eb', fontSize: 24 }} />
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1e40af', fontSize: '0.98rem' }}>
+              สั่งสินค้าที่ไม่มีอยู่ในระบบ (เพิ่มรายการพิเศษ)
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#4b5563' }}>
+              หากค้นหาในระบบแล้วไม่พบสินค้าที่ต้องการ สามารถกรอกข้อมูลสินค้าและจำนวนที่ต้องการขอซื้อได้ที่นี่
+            </Typography>
+          </Box>
+        </Box>
+
+        <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {/* แถวที่ 1: ชื่อสินค้า, หน่วยนับ, จำนวน */}
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: '2fr 1fr 1fr' },
+                gap: 2,
+                alignItems: 'center',
+              }}
+            >
+              <TextField
+                fullWidth
+                size="small"
+                label="ชื่อสินค้า / รายการที่ต้องการสั่ง *"
+                placeholder="เช่น ถ่าน AA, แปรงขัดห้องน้ำ, น้ำยาฆ่าเชื้อ"
+                value={customItem.sProductName}
+                onChange={(e) => setCustomItem({ ...customItem, sProductName: e.target.value })}
+                sx={{ bgcolor: '#ffffff' }}
+              />
+
+              <TextField
+                fullWidth
+                size="small"
+                label="หน่วยนับ *"
+                placeholder="เช่น ชิ้น, กล่อง, แพ็ค"
+                value={customItem.sUnit}
+                onChange={(e) => setCustomItem({ ...customItem, sUnit: e.target.value })}
+                sx={{ bgcolor: '#ffffff' }}
+              />
+
+              <TextField
+                fullWidth
+                size="small"
+                type="number"
+                label="จำนวน *"
+                slotProps={{ htmlInput: { min: 1 } }}
+                value={customItem.nQuantity}
+                onChange={(e) => setCustomItem({ ...customItem, nQuantity: Math.max(1, parseInt(e.target.value) || 1) })}
+                sx={{ bgcolor: '#ffffff' }}
+              />
+            </Box>
+
+            {/* แถวที่ 2: หมายเหตุ และ ปุ่มเพิ่มรายการ */}
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: '1fr auto' },
+                gap: 2,
+                alignItems: 'center',
+              }}
+            >
+              <TextField
+                fullWidth
+                size="small"
+                label="หมายเหตุ / สเปก / เหตุผลที่ต้องการ (ถ้ามี)"
+                placeholder="เช่น สั่งด่วนสำหรับแผนก F&B, ยี่ห้อ Panasonic, ขนาด 500ml"
+                value={customItem.sRemarks}
+                onChange={(e) => setCustomItem({ ...customItem, sRemarks: e.target.value })}
+                sx={{ bgcolor: '#ffffff' }}
+              />
+
+              <Button
+                variant="contained"
+                onClick={handleAddCustomItem}
+                startIcon={<AddIcon />}
+                sx={{
+                  bgcolor: '#2563eb',
+                  '&:hover': { bgcolor: '#1d4ed8' },
+                  borderRadius: 2,
+                  fontWeight: 700,
+                  py: 1,
+                  px: 3,
+                  whiteSpace: 'nowrap',
+                  textTransform: 'none',
+                  boxShadow: '0 2px 8px rgba(37,99,235,0.25)',
+                }}
+              >
+                เพิ่มรายการ
+              </Button>
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+
       {cartItems.length === 0 ? (
         <Card
           sx={{
@@ -170,10 +338,10 @@ export const CartContainer: React.FC = () => {
         >
           <ShoppingCartIcon sx={{ fontSize: 64, color: '#94a3b8', mb: 1.5, opacity: 0.7 }} />
           <Typography variant="h6" sx={{ fontWeight: 600, color: '#475569', mb: 0.5 }}>
-            ไม่มีสินค้าในตะกร้า
+            ยังไม่มีสินค้าในรายการคำขอซื้อ
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            ท่านยังไม่ได้เลือกสินค้าเพื่อจัดทำเอกสารขอสั่งซื้อ
+            ท่านสามารถเลือกสินค้าจากระบบด้านล่าง หรือกรอกสั่งสินค้าพิเศษจากกล่องด้านบนได้ทันที
           </Typography>
           <Button
             component={Link}
@@ -215,19 +383,13 @@ export const CartContainer: React.FC = () => {
                     <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8 }}>
                       รายการสินค้า
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 90, textAlign: 'center' }}>
+                    <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 100, textAlign: 'center' }}>
                       หน่วย
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 110, textAlign: 'right' }}>
-                      ราคา/หน่วย
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 160, textAlign: 'center' }}>
+                    <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 180, textAlign: 'center' }}>
                       จำนวน
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 120, textAlign: 'right' }}>
-                      รวมเงิน
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 70, textAlign: 'center' }}>
+                    <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 80, textAlign: 'center' }}>
                       ลบ
                     </TableCell>
                   </TableRow>
@@ -258,9 +420,30 @@ export const CartContainer: React.FC = () => {
 
                         {/* ชื่อสินค้า */}
                         <TableCell sx={{ py: 2 }}>
-                          <Typography variant="body2" sx={{ fontWeight: 600, color: '#1e293b', fontSize: '0.94rem' }}>
-                            {item.objProduct.sProductName}
-                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: '#1e293b', fontSize: '0.94rem' }}>
+                              {item.objProduct.sProductName}
+                            </Typography>
+                            {nProductId < 0 && (
+                              <Chip
+                                label="สั่งนอกระบบ"
+                                size="small"
+                                sx={{
+                                  height: 20,
+                                  fontSize: '0.7rem',
+                                  fontWeight: 700,
+                                  bgcolor: '#fef3c7',
+                                  color: '#b45309',
+                                  borderRadius: 1,
+                                }}
+                              />
+                            )}
+                          </Box>
+                          {(item.objProduct.sRemarks || item.sRemarks) && (
+                            <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.3 }}>
+                              หมายเหตุ: {item.objProduct.sRemarks || item.sRemarks}
+                            </Typography>
+                          )}
                         </TableCell>
 
                         {/* หน่วย */}
@@ -276,11 +459,6 @@ export const CartContainer: React.FC = () => {
                               borderRadius: 1.5,
                             }}
                           />
-                        </TableCell>
-
-                        {/* ราคา/หน่วย */}
-                        <TableCell align="right" sx={{ py: 2, fontWeight: 600, color: '#475569' }}>
-                          ฿{Number(item.objProduct.dUnitPrice || 0).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </TableCell>
 
                         {/* Stepper ปรับจำนวน */}
@@ -323,11 +501,6 @@ export const CartContainer: React.FC = () => {
                               <AddIcon sx={{ fontSize: 16 }} />
                             </IconButton>
                           </Box>
-                        </TableCell>
-
-                        {/* รวมเงิน */}
-                        <TableCell align="right" sx={{ py: 2, fontWeight: 700, color: '#0f766e', fontSize: '0.95rem' }}>
-                          ฿{(Number(item.objProduct.dUnitPrice || 0) * item.nQuantity).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </TableCell>
 
                         {/* ปุ่มลบ */}
@@ -404,27 +577,39 @@ export const CartContainer: React.FC = () => {
                       </IconButton>
                     </Box>
 
-                    <Typography
-                      variant="subtitle1"
-                      sx={{
-                        fontWeight: 600,
-                        color: '#1e293b',
-                        fontSize: '0.96rem',
-                        lineHeight: 1.35,
-                        mb: 1,
-                      }}
-                    >
-                      {item.objProduct.sProductName}
-                    </Typography>
-
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-                      <Typography variant="caption" color="text.secondary">
-                        ราคา/หน่วย: ฿{Number(item.objProduct.dUnitPrice || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, flexWrap: 'wrap' }}>
+                      <Typography
+                        variant="subtitle1"
+                        sx={{
+                          fontWeight: 600,
+                          color: '#1e293b',
+                          fontSize: '0.96rem',
+                          lineHeight: 1.35,
+                        }}
+                      >
+                        {item.objProduct.sProductName}
                       </Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 700, color: '#0f766e' }}>
-                        รวม: ฿{(Number(item.objProduct.dUnitPrice || 0) * item.nQuantity).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
-                      </Typography>
+                      {nProductId < 0 && (
+                        <Chip
+                          label="สั่งนอกระบบ"
+                          size="small"
+                          sx={{
+                            height: 20,
+                            fontSize: '0.7rem',
+                            fontWeight: 700,
+                            bgcolor: '#fef3c7',
+                            color: '#b45309',
+                            borderRadius: 1,
+                          }}
+                        />
+                      )}
                     </Box>
+
+                    {(item.objProduct.sRemarks || item.sRemarks) && (
+                      <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mb: 1 }}>
+                        หมายเหตุ: {item.objProduct.sRemarks || item.sRemarks}
+                      </Typography>
+                    )}
 
                     <Box
                       sx={{
@@ -530,9 +715,6 @@ export const CartContainer: React.FC = () => {
                   </Typography>
                   <Typography variant="body1" sx={{ fontWeight: 700, color: '#2563eb' }}>
                     {cartItems.length} รายการ ({nTotalItems} ชิ้น)
-                  </Typography>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f766e', mt: 0.3 }}>
-                    รวมประมาณการ ฿{cartItems.reduce((acc, it) => acc + (Number(it.objProduct.dUnitPrice || 0) * it.nQuantity), 0).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </Typography>
                 </Box>
               </Box>

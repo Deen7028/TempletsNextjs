@@ -19,10 +19,6 @@ public partial class TbPurchaseOrderItem
 
     public string SUnit { get; set; } = null!;
 
-    public decimal DUnitPrice { get; set; }
-
-    public decimal DLineTotal { get; set; }
-
     public string? SRemarks { get; set; }
 
     public virtual TbPurchaseOrder NPo { get; set; } = null!;

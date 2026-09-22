@@ -3,14 +3,13 @@ import { IProduct } from '@/modules/products';
 export interface IPurchaseRequestItem {
   nRequestItemId?: number;
   nRequestId?: number;
-  nProductId: number;
+  nProductId?: number | null;
   sProductCode?: string;
   sSnapshotProductName: string;
   sSnapshotUnit: string;
-  dUnitPrice?: number;
   nQuantity: number;
-  dLineTotal?: number;
   sRemarks?: string | null;
+  isCustomItem?: boolean;
 }
 
 export interface IPurchaseRequest {
@@ -24,7 +23,6 @@ export interface IPurchaseRequest {
   sStatus: string;
   sAdminRemarks?: string | null;
   nItemCount?: number;
-  dTotalAmount?: number;
   dtCreatedAt?: string;
   dtUpdatedAt?: string;
   sGeneratedPoNumber?: string | null;
@@ -41,7 +39,4 @@ export interface ICartItem {
 export interface ICartSummary {
   nTotalItems: number;
   nTotalQuantity: number;
-  dSubTotal: number;
-  dVatAmount: number;
-  dGrandTotal: number;
 }

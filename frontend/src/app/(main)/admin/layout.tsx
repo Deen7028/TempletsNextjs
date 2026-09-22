@@ -10,8 +10,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { objUser, isLoading } = useAuth();
   const objRouter = useRouter();
 
-  // กำหนดสิทธิ์: เฉพาะผู้ใช้งานที่มี role = 'Admin' เท่านั้น
-  const isAdmin = objUser?.sRole === 'Admin';
+  // กำหนดสิทธิ์: ผู้ใช้งานที่มี role = 'Admin' หรือ 'Manager'
+  const isAuthorized = objUser?.sRole === 'Admin' || objUser?.sRole === 'Manager';
 
   if (isLoading) {
     return (
@@ -33,7 +33,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  if (!isAdmin) {
+  if (!isAuthorized) {
     return (
       <Box
         sx={{

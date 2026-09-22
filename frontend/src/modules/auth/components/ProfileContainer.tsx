@@ -28,6 +28,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import BadgeIcon from '@mui/icons-material/Badge';
 import EmailIcon from '@mui/icons-material/Email';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/authService';
 import { IDepartment } from '../interfaces/IAuth';
@@ -223,13 +224,31 @@ export const ProfileContainer: React.FC = () => {
                   {sFirstName || objUser?.sFirstName || 'ผู้ใช้งาน'} {sLastName || objUser?.sLastName || ''}
                 </Typography>
                 <Chip
-                  icon={objUser?.sRole === 'Admin' ? <AdminPanelSettingsIcon sx={{ fontSize: '1rem !important' }} /> : <BadgeIcon sx={{ fontSize: '1rem !important' }} />}
+                  icon={
+                    objUser?.sRole === 'Admin' ? (
+                      <AdminPanelSettingsIcon sx={{ fontSize: '1rem !important' }} />
+                    ) : objUser?.sRole === 'Manager' ? (
+                      <SupervisorAccountIcon sx={{ fontSize: '1rem !important' }} />
+                    ) : (
+                      <BadgeIcon sx={{ fontSize: '1rem !important' }} />
+                    )
+                  }
                   label={objUser?.sRole || 'Employee'}
                   size="small"
                   sx={{
                     fontWeight: 600,
-                    bgcolor: objUser?.sRole === 'Admin' ? '#fef3c7' : '#e0f2fe',
-                    color: objUser?.sRole === 'Admin' ? '#92400e' : '#0369a1',
+                    bgcolor:
+                      objUser?.sRole === 'Admin'
+                        ? '#fef3c7'
+                        : objUser?.sRole === 'Manager'
+                        ? '#ede9fe'
+                        : '#e0f2fe',
+                    color:
+                      objUser?.sRole === 'Admin'
+                        ? '#92400e'
+                        : objUser?.sRole === 'Manager'
+                        ? '#6d28d9'
+                        : '#0369a1',
                     borderRadius: 1.5,
                   }}
                 />

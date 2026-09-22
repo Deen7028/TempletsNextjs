@@ -296,13 +296,10 @@ export const AdminRequestListContainer: React.FC = () => {
                     <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 110 }}>วันที่</TableCell>
                     <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 130 }}>แผนก</TableCell>
                     <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8 }}>ผู้สั่ง</TableCell>
-                    <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, textAlign: 'center', width: 110 }}>
+                    <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, textAlign: 'center', width: 130 }}>
                       จำนวนรายการ
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, textAlign: 'right', width: 120 }}>
-                      ยอดรวม
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, textAlign: 'center', width: 120 }}>
+                    <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, textAlign: 'center', width: 130 }}>
                       สถานะ
                     </TableCell>
                     <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, textAlign: 'center', width: 80 }}>
@@ -342,9 +339,6 @@ export const AdminRequestListContainer: React.FC = () => {
                       </TableCell>
                       <TableCell align="center" sx={{ py: 2, fontWeight: 700, color: '#2563eb' }}>
                         {req.nItemCount || (req.lstItems ? req.lstItems.length : '-')}
-                      </TableCell>
-                      <TableCell align="right" sx={{ py: 2, fontWeight: 700, color: '#0f766e' }}>
-                        ฿{Number(req.dTotalAmount || 0).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </TableCell>
                       <TableCell align="center" sx={{ py: 2 }}>
                         {getStatusChip(req.sStatus)}
@@ -403,9 +397,6 @@ export const AdminRequestListContainer: React.FC = () => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 0.5 }}>
                         <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.82rem' }}>
                           จำนวน: <b>{req.nItemCount || (req.lstItems ? req.lstItems.length : '-')}</b> รายการ
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#0f766e' }}>
-                          ฿{Number(req.dTotalAmount || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
                         </Typography>
                       </Box>
                     </Box>

@@ -26,9 +26,6 @@ public partial class TmEmployee
     public virtual TmDepartment? NDepartment { get; set; }
 
     public virtual ICollection<TbPurchaseOrder> TbPurchaseOrderNApprovedByNavigations { get; set; } = new List<TbPurchaseOrder>();
-
-    public virtual ICollection<TbPurchaseOrder> TbPurchaseOrderNCheckedByNavigations { get; set; } = new List<TbPurchaseOrder>();
-
     public virtual ICollection<TbPurchaseOrder> TbPurchaseOrderNRequestedByNavigations { get; set; } = new List<TbPurchaseOrder>();
 
     public virtual ICollection<TbPurchaseRequest> TbPurchaseRequests { get; set; } = new List<TbPurchaseRequest>();

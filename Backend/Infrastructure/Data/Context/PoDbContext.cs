@@ -26,15 +26,11 @@ public partial class PoDbContext : DbContext
 
     public virtual DbSet<TbPurchaseRequestItem> TbPurchaseRequestItems { get; set; }
 
-    public virtual DbSet<TmDeliveryLocation> TmDeliveryLocations { get; set; }
-
     public virtual DbSet<TmDepartment> TmDepartments { get; set; }
 
     public virtual DbSet<TmEmployee> TmEmployees { get; set; }
 
     public virtual DbSet<TmProduct> TmProducts { get; set; }
-
-    public virtual DbSet<TmSupplier> TmSuppliers { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -76,15 +72,9 @@ public partial class PoDbContext : DbContext
 
             entity.HasIndex(e => e.NApprovedBy, "FK_PO_ApprovedBy");
 
-            entity.HasIndex(e => e.NCheckedBy, "FK_PO_CheckedBy");
-
-            entity.HasIndex(e => e.NLocationId, "FK_PO_Location");
-
             entity.HasIndex(e => e.NRequestId, "FK_PO_Request");
 
             entity.HasIndex(e => e.NRequestedBy, "FK_PO_RequestedBy");
-
-            entity.HasIndex(e => e.NSupplierId, "FK_PO_Supplier");
 
             entity.HasIndex(e => e.SPoNumber, "IX_PO_PoNumber");
 
@@ -103,45 +93,15 @@ public partial class PoDbContext : DbContext
                 .HasColumnName("dtPoDate");
             entity.Property(e => e.IsApproved).HasColumnName("isApproved");
             entity.Property(e => e.NApprovedBy).HasColumnName("nApprovedBy");
-            entity.Property(e => e.NCheckedBy).HasColumnName("nCheckedBy");
-            entity.Property(e => e.NLocationId).HasColumnName("nLocationId");
             entity.Property(e => e.NRequestId).HasColumnName("nRequestId");
             entity.Property(e => e.NRequestedBy).HasColumnName("nRequestedBy");
-            entity.Property(e => e.NSupplierId).HasColumnName("nSupplierId");
-            entity.Property(e => e.SPaymentMethod)
-                .HasMaxLength(50)
-                .HasColumnName("sPaymentMethod");
-            entity.Property(e => e.DSubTotal)
-                .HasPrecision(12, 2)
-                .HasColumnName("dSubTotal");
-            entity.Property(e => e.DVatAmount)
-                .HasPrecision(12, 2)
-                .HasColumnName("dVatAmount");
-            entity.Property(e => e.DGrandTotal)
-                .HasPrecision(12, 2)
-                .HasColumnName("dGrandTotal");
-            entity.Property(e => e.SPaymentTerm)
-                .HasMaxLength(50)
-                .HasColumnName("sPaymentTerm");
             entity.Property(e => e.SPoNumber)
                 .HasMaxLength(50)
                 .HasColumnName("sPoNumber");
-            entity.Property(e => e.SRequiredTime)
-                .HasMaxLength(50)
-                .HasColumnName("sRequiredTime");
 
             entity.HasOne(d => d.NApprovedByNavigation).WithMany(p => p.TbPurchaseOrderNApprovedByNavigations)
                 .HasForeignKey(d => d.NApprovedBy)
                 .HasConstraintName("FK_PO_ApprovedBy");
-
-            entity.HasOne(d => d.NCheckedByNavigation).WithMany(p => p.TbPurchaseOrderNCheckedByNavigations)
-                .HasForeignKey(d => d.NCheckedBy)
-                .HasConstraintName("FK_PO_CheckedBy");
-
-            entity.HasOne(d => d.NLocation).WithMany(p => p.TbPurchaseOrders)
-                .HasForeignKey(d => d.NLocationId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PO_Location");
 
             entity.HasOne(d => d.NRequest).WithMany(p => p.TbPurchaseOrders)
                 .HasForeignKey(d => d.NRequestId)
@@ -152,11 +112,6 @@ public partial class PoDbContext : DbContext
                 .HasForeignKey(d => d.NRequestedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_PO_RequestedBy");
-
-            entity.HasOne(d => d.NSupplier).WithMany(p => p.TbPurchaseOrders)
-                .HasForeignKey(d => d.NSupplierId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PO_Supplier");
         });
 
         modelBuilder.Entity<TbPurchaseOrderItem>(entity =>
@@ -182,12 +137,7 @@ public partial class PoDbContext : DbContext
             entity.Property(e => e.SUnit)
                 .HasMaxLength(50)
                 .HasColumnName("sUnit");
-            entity.Property(e => e.DUnitPrice)
-                .HasPrecision(12, 2)
-                .HasColumnName("dUnitPrice");
-            entity.Property(e => e.DLineTotal)
-                .HasPrecision(12, 2)
-                .HasColumnName("dLineTotal");
+
 
             entity.HasOne(d => d.NPo).WithMany(p => p.TbPurchaseOrderItems)
                 .HasForeignKey(d => d.NPoId)
@@ -264,15 +214,11 @@ public partial class PoDbContext : DbContext
             entity.Property(e => e.SSnapshotUnit)
                 .HasMaxLength(50)
                 .HasColumnName("sSnapshotUnit");
-            entity.Property(e => e.DUnitPrice)
-                .HasPrecision(12, 2)
-                .HasColumnName("dUnitPrice");
-            entity.Property(e => e.DLineTotal)
-                .HasPrecision(12, 2)
-                .HasColumnName("dLineTotal");
+
 
             entity.HasOne(d => d.NProduct).WithMany(p => p.TbPurchaseRequestItems)
                 .HasForeignKey(d => d.NProductId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_PRItems_Product");
 
@@ -281,24 +227,6 @@ public partial class PoDbContext : DbContext
                 .HasConstraintName("FK_PRItems_Request");
         });
 
-        modelBuilder.Entity<TmDeliveryLocation>(entity =>
-        {
-            entity.ToTable("tmDeliveryLocations");
-            entity.HasKey(e => e.NLocationId);
-
-            entity.Property(e => e.NLocationId).HasColumnName("nLocationId");
-            entity.Property(e => e.DtCreatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("dtCreatedAt");
-            entity.Property(e => e.IsActive)
-                .IsRequired()
-                .HasDefaultValue(true)
-                .HasColumnName("isActive");
-            entity.Property(e => e.SLocationName)
-                .HasMaxLength(255)
-                .HasColumnName("sLocationName");
-        });
 
         modelBuilder.Entity<TmDepartment>(entity =>
         {
@@ -369,8 +297,6 @@ public partial class PoDbContext : DbContext
             entity.ToTable("tmProducts");
             entity.HasKey(e => e.NProductId);
 
-            entity.HasIndex(e => e.NDefaultSupplierId, "FK_Products_Supplier");
-
             entity.HasIndex(e => e.SProductCode, "sProductCode").IsUnique();
 
             entity.Property(e => e.NProductId).HasColumnName("nProductId");
@@ -382,7 +308,6 @@ public partial class PoDbContext : DbContext
                 .IsRequired()
                 .HasDefaultValue(true)
                 .HasColumnName("isActive");
-            entity.Property(e => e.NDefaultSupplierId).HasColumnName("nDefaultSupplierId");
             entity.Property(e => e.SProductCode)
                 .HasMaxLength(50)
                 .HasColumnName("sProductCode");
@@ -392,61 +317,10 @@ public partial class PoDbContext : DbContext
             entity.Property(e => e.SUnit)
                 .HasMaxLength(50)
                 .HasColumnName("sUnit");
-            entity.Property(e => e.DUnitPrice)
-                .HasPrecision(12, 2)
-                .HasColumnName("dUnitPrice");
+
             entity.Property(e => e.SCategory)
                 .HasMaxLength(100)
                 .HasColumnName("sCategory");
-            entity.Property(e => e.SImageUrl)
-                .HasMaxLength(500)
-                .HasColumnName("sImageUrl");
-
-            entity.HasOne(d => d.NDefaultSupplier).WithMany(p => p.TmProducts)
-                .HasForeignKey(d => d.NDefaultSupplierId)
-                .HasConstraintName("FK_Products_Supplier");
-        });
-
-        modelBuilder.Entity<TmSupplier>(entity =>
-        {
-            entity.ToTable("tmSuppliers");
-            entity.HasKey(e => e.NSupplierId);
-
-            entity.HasIndex(e => e.SSupplierCode, "sSupplierCode").IsUnique();
-
-            entity.Property(e => e.NSupplierId).HasColumnName("nSupplierId");
-            entity.Property(e => e.DtCreatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("dtCreatedAt");
-            entity.Property(e => e.IsActive)
-                .IsRequired()
-                .HasDefaultValue(true)
-                .HasColumnName("isActive");
-            entity.Property(e => e.SAddress)
-                .HasColumnType("text")
-                .HasColumnName("sAddress");
-            entity.Property(e => e.SBranch)
-                .HasMaxLength(100)
-                .HasColumnName("sBranch");
-            entity.Property(e => e.SContactName)
-                .HasMaxLength(150)
-                .HasColumnName("sContactName");
-            entity.Property(e => e.SPaymentMethod)
-                .HasMaxLength(50)
-                .HasColumnName("sPaymentMethod");
-            entity.Property(e => e.SPaymentTerm)
-                .HasMaxLength(100)
-                .HasColumnName("sPaymentTerm");
-            entity.Property(e => e.SSupplierCode)
-                .HasMaxLength(50)
-                .HasColumnName("sSupplierCode");
-            entity.Property(e => e.SSupplierName)
-                .HasMaxLength(255)
-                .HasColumnName("sSupplierName");
-            entity.Property(e => e.STelFax)
-                .HasMaxLength(100)
-                .HasColumnName("sTelFax");
         });
 
         OnModelCreatingPartial(modelBuilder);

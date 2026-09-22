@@ -5,7 +5,7 @@ export interface IDepartment {
   isActive?: boolean;
 }
 
-export type UserRole = 'Employee' | 'Admin';
+export type UserRole = 'Employee' | 'Manager' | 'Admin';
 
 export interface IUser {
   nEmployeeId: number;

@@ -147,9 +147,6 @@ export const ProductSearchContainer: React.FC<IProductSearchProps> = ({
                 <TableCell sx={{ fontWeight: 700, color: '#475569', py: 2, width: 110, textAlign: 'center' }}>
                   หน่วย
                 </TableCell>
-                <TableCell sx={{ fontWeight: 700, color: '#475569', py: 2, width: 120, textAlign: 'right' }}>
-                  ราคา/หน่วย
-                </TableCell>
                 <TableCell sx={{ fontWeight: 700, color: '#475569', py: 2, width: 270, textAlign: 'center' }}>
                   จำนวน / ดำเนินการ
                 </TableCell>
@@ -158,7 +155,7 @@ export const ProductSearchContainer: React.FC<IProductSearchProps> = ({
             <TableBody>
               {lstFilteredProducts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} align="center" sx={{ py: 6, color: '#94a3b8' }}>
+                  <TableCell colSpan={4} align="center" sx={{ py: 6, color: '#94a3b8' }}>
                     <Inventory2Icon sx={{ fontSize: 44, mb: 1, display: 'block', mx: 'auto' }} />
                     ไม่พบข้อมูลสินค้าที่ค้นหา &ldquo;{sKeyword}&rdquo;
                   </TableCell>
@@ -229,12 +226,7 @@ export const ProductSearchContainer: React.FC<IProductSearchProps> = ({
                         />
                       </TableCell>
 
-                      {/* 4. ราคา/หน่วย */}
-                      <TableCell align="right" sx={{ py: 2, fontWeight: 700, color: '#0f766e', fontSize: '0.95rem' }}>
-                        ฿{Number(objProduct.dUnitPrice || 0).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </TableCell>
-
-                      {/* 5. เพิ่มลงตะกร้า */}
+                      {/* 4. เพิ่มลงตะกร้า */}
                       <TableCell align="center" sx={{ py: 2 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                           {/* Stepper ปรับจำนวน */}
@@ -372,9 +364,6 @@ export const ProductSearchContainer: React.FC<IProductSearchProps> = ({
                         }}
                       />
                     )}
-                    <Typography sx={{ ml: 'auto', fontWeight: 700, color: '#0f766e', fontSize: '0.92rem' }}>
-                      ฿{Number(objProduct.dUnitPrice || 0).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </Typography>
                   </Box>
 
                   <Typography

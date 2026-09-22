@@ -3,9 +3,7 @@ export interface IProduct {
   sProductCode: string;
   sProductName: string;
   sUnit: string;
-  dUnitPrice?: number;
   sCategory?: string | null;
-  sImageUrl?: string | null;
-  nDefaultSupplierId?: number | null;
+  sRemarks?: string | null;
   isActive: boolean;
 }

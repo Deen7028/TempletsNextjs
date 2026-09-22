@@ -7,12 +7,10 @@ namespace Backend.Presentation.Controllers;
 
 public class CreatePurchaseRequestItemDto
 {
-    public int NProductId { get; set; }
+    public int? NProductId { get; set; }
     public string SSnapshotProductName { get; set; } = string.Empty;
     public string SSnapshotUnit { get; set; } = string.Empty;
-    public decimal DUnitPrice { get; set; }
     public int NQuantity { get; set; }
-    public decimal DLineTotal { get; set; }
     public string? SRemarks { get; set; }
 }
 
@@ -59,24 +57,23 @@ public class PurchaseRequestsController : ControllerBase
         }
 
         var departmentExists = await _context.TmDepartments
-            .AnyAsync(d => d.NDepartmentId == dto.NDepartmentId);
+            .AnyAsync(d => d.NDepartmentId == dto.NDepartmentId && d.IsActive == true);
         if (!departmentExists)
         {
-            return BadRequest(new { status = "error", message = "ไม่พบแผนกที่ระบุในระบบ" });
+            return BadRequest(new { status = "error", message = "ไม่พบข้อมูลแผนกที่ระบุในระบบ" });
         }
-
-        // สร้างรหัสเอกสาร PR อัตโนมัติ (PR-yyyyMMdd-XXXX)
-        var sDatePrefix = $"PR-{DateTime.UtcNow:yyyyMMdd}-";
-        var countToday = await _context.TbPurchaseRequests
-            .CountAsync(r => r.SRequestNo.StartsWith(sDatePrefix));
-        var sGeneratedRequestNo = $"{sDatePrefix}{(countToday + 1):D4}";
 
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
+            var sDatePrefix = $"PR-{DateTime.UtcNow:yyyyMMdd}-";
+            var countToday = await _context.TbPurchaseRequests
+                .CountAsync(r => r.SRequestNo.StartsWith(sDatePrefix));
+            var sRequestNo = $"{sDatePrefix}{(countToday + 1):D3}";
+
             var pr = new TbPurchaseRequest
             {
-                SRequestNo = sGeneratedRequestNo,
+                SRequestNo = sRequestNo,
                 NDepartmentId = dto.NDepartmentId,
                 NRequestedByEmployeeId = dto.NRequestedByEmployeeId,
                 SStatus = "PENDING_APPROVAL",
@@ -93,18 +90,13 @@ public class PurchaseRequestsController : ControllerBase
             {
                 if (item.NQuantity <= 0) continue;
 
-                var unitPrice = item.DUnitPrice;
-                var lineTotal = item.DLineTotal > 0 ? item.DLineTotal : (unitPrice * item.NQuantity);
-
                 var prItem = new TbPurchaseRequestItem
                 {
                     NRequestId = pr.NRequestId,
-                    NProductId = item.NProductId,
+                    NProductId = (item.NProductId != null && item.NProductId > 0) ? item.NProductId : null,
                     SSnapshotProductName = item.SSnapshotProductName,
                     SSnapshotUnit = item.SSnapshotUnit,
-                    DUnitPrice = unitPrice,
                     NQuantity = item.NQuantity,
-                    DLineTotal = lineTotal,
                     SRemarks = item.SRemarks
                 };
                 _context.TbPurchaseRequestItems.Add(prItem);
@@ -162,7 +154,6 @@ public class PurchaseRequestsController : ControllerBase
                 sStatus = r.SStatus,
                 sAdminRemarks = r.SAdminRemarks,
                 nItemCount = r.TbPurchaseRequestItems.Count,
-                dTotalAmount = r.TbPurchaseRequestItems.Sum(i => i.DLineTotal > 0 ? i.DLineTotal : (i.DUnitPrice * i.NQuantity)),
                 dtCreatedAt = r.DtCreatedAt,
                 dtUpdatedAt = r.DtUpdatedAt
             })
@@ -204,18 +195,16 @@ public class PurchaseRequestsController : ControllerBase
             dtUpdatedAt = pr.DtUpdatedAt,
             sGeneratedPoNumber = po?.SPoNumber,
             nPoId = po?.NPoId,
-            dTotalAmount = pr.TbPurchaseRequestItems.Sum(i => i.DLineTotal > 0 ? i.DLineTotal : (i.DUnitPrice * i.NQuantity)),
             lstItems = pr.TbPurchaseRequestItems.Select(i => new
             {
                 nRequestItemId = i.NRequestItemId,
                 nProductId = i.NProductId,
-                sProductCode = i.NProduct != null ? i.NProduct.SProductCode : "",
+                sProductCode = i.NProduct != null ? i.NProduct.SProductCode : (i.NProductId == null || i.NProductId <= 0 ? "OFF-CATALOG" : $"CODE-{i.NProductId}"),
                 sSnapshotProductName = i.SSnapshotProductName,
                 sSnapshotUnit = i.SSnapshotUnit,
-                dUnitPrice = i.DUnitPrice,
                 nQuantity = i.NQuantity,
-                dLineTotal = i.DLineTotal > 0 ? i.DLineTotal : (i.DUnitPrice * i.NQuantity),
-                sRemarks = i.SRemarks
+                sRemarks = i.SRemarks,
+                isCustomItem = i.NProductId == null || i.NProductId <= 0
             }).ToList()
         };
 
@@ -290,56 +279,12 @@ public class PurchaseRequestsController : ControllerBase
                     .CountAsync(p => p.SPoNumber.StartsWith(sDatePrefix));
                 generatedPoNumber = $"{sDatePrefix}{(countPoToday + 1):D3}";
 
-                // ค้นหาหรือกำหนดค่าเริ่มต้นสำหรับ Supplier และ Location
-                var defaultSupplier = await _context.TmSuppliers.FirstOrDefaultAsync(s => s.IsActive == true);
-                if (defaultSupplier == null)
-                {
-                    defaultSupplier = new TmSupplier
-                    {
-                        SSupplierCode = "SUP-DEFAULT",
-                        SSupplierName = "ซัพพลายเออร์ทั่วไป (Default)",
-                        IsActive = true,
-                        DtCreatedAt = DateTime.UtcNow
-                    };
-                    _context.TmSuppliers.Add(defaultSupplier);
-                    await _context.SaveChangesAsync();
-                }
-
-                var defaultLocation = await _context.TmDeliveryLocations.FirstOrDefaultAsync(l => l.IsActive == true);
-                if (defaultLocation == null)
-                {
-                    defaultLocation = new TmDeliveryLocation
-                    {
-                        SLocationName = "Railay Great View Resort (สำนักงานใหญ่)",
-                        IsActive = true,
-                        DtCreatedAt = DateTime.UtcNow
-                    };
-                    _context.TmDeliveryLocations.Add(defaultLocation);
-                    await _context.SaveChangesAsync();
-                }
-
-                // คำนวณยอดเงินรวม SubTotal, VAT 7%, GrandTotal
-                decimal poSubTotal = 0;
-                foreach (var prItem in pr.TbPurchaseRequestItems)
-                {
-                    var uPrice = prItem.DUnitPrice > 0 ? prItem.DUnitPrice : (prItem.NProduct?.DUnitPrice ?? 0);
-                    var lTotal = prItem.DLineTotal > 0 ? prItem.DLineTotal : (uPrice * prItem.NQuantity);
-                    poSubTotal += lTotal;
-                }
-                decimal poVat = Math.Round(poSubTotal * 0.07m, 2);
-                decimal poGrandTotal = poSubTotal + poVat;
-
                 var po = new TbPurchaseOrder
                 {
                     SPoNumber = generatedPoNumber,
                     NRequestId = pr.NRequestId,
-                    NSupplierId = defaultSupplier.NSupplierId,
-                    NLocationId = defaultLocation.NLocationId,
                     DtPoDate = DateTime.UtcNow.Date,
                     DtDeliveryDate = DateTime.UtcNow.Date.AddDays(7),
-                    DSubTotal = poSubTotal,
-                    DVatAmount = poVat,
-                    DGrandTotal = poGrandTotal,
                     NRequestedBy = pr.NRequestedByEmployeeId,
                     NApprovedBy = dto.NActionByEmployeeId > 0 ? dto.NActionByEmployeeId : null,
                     IsApproved = true,
@@ -354,19 +299,14 @@ public class PurchaseRequestsController : ControllerBase
                 int seq = 1;
                 foreach (var prItem in pr.TbPurchaseRequestItems)
                 {
-                    var uPrice = prItem.DUnitPrice > 0 ? prItem.DUnitPrice : (prItem.NProduct?.DUnitPrice ?? 0);
-                    var lTotal = prItem.DLineTotal > 0 ? prItem.DLineTotal : (uPrice * prItem.NQuantity);
-
                     var poItem = new TbPurchaseOrderItem
                     {
                         NPoId = po.NPoId,
                         NItemSeq = seq++,
-                        SProductCode = prItem.NProduct?.SProductCode ?? $"CODE-{prItem.NProductId}",
+                        SProductCode = prItem.NProduct?.SProductCode ?? (prItem.NProductId == null || prItem.NProductId <= 0 ? "OFF-CATALOG" : $"CODE-{prItem.NProductId}"),
                         SProductName = prItem.SSnapshotProductName,
                         NQuantity = prItem.NQuantity,
                         SUnit = prItem.SSnapshotUnit,
-                        DUnitPrice = uPrice,
-                        DLineTotal = lTotal,
                         SRemarks = prItem.SRemarks
                     };
                     _context.TbPurchaseOrderItems.Add(poItem);

@@ -42,14 +42,12 @@ export const AdminProductManagementContainer: React.FC = () => {
     sProductCode: string;
     sProductName: string;
     sUnit: string;
-    dUnitPrice: number | string;
     sCategory: string;
     nDefaultSupplierId: number;
   }>({
     sProductCode: '',
     sProductName: '',
     sUnit: '',
-    dUnitPrice: '',
     sCategory: '',
     nDefaultSupplierId: 1,
   });
@@ -104,10 +102,9 @@ export const AdminProductManagementContainer: React.FC = () => {
     try {
       await productService.createProduct({
         ...objForm,
-        dUnitPrice: objForm.dUnitPrice ? Number(objForm.dUnitPrice) : 0,
       });
       setSNotification('เพิ่มข้อมูลสินค้าใหม่สำเร็จเรียบร้อยแล้ว');
-      setObjForm({ sProductCode: '', sProductName: '', sUnit: '', dUnitPrice: '', sCategory: '', nDefaultSupplierId: 1 });
+      setObjForm({ sProductCode: '', sProductName: '', sUnit: '', sCategory: '', nDefaultSupplierId: 1 });
       loadProducts();
     } catch (objErr: any) {
       setSError(objErr?.message || 'ไม่สามารถบันทึกข้อมูลสินค้าได้');
@@ -149,9 +146,7 @@ export const AdminProductManagementContainer: React.FC = () => {
       await productService.updateProduct(editProduct.nProductId, {
         sProductName: editProduct.sProductName,
         sUnit: editProduct.sUnit,
-        dUnitPrice: Number(editProduct.dUnitPrice) || 0,
         sCategory: editProduct.sCategory || '',
-        sImageUrl: editProduct.sImageUrl || '',
       });
       setSNotification('อัปเดตข้อมูลสินค้าสำเร็จเรียบร้อยแล้ว');
       handleCloseEdit();
@@ -217,7 +212,7 @@ export const AdminProductManagementContainer: React.FC = () => {
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' },
                 gap: 2,
               }}
             >
@@ -241,18 +236,6 @@ export const AdminProductManagementContainer: React.FC = () => {
                   value={objForm.sUnit}
                   onChange={handleChange}
                   size="small"
-                />
-              </Box>
-              <Box>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="ราคาต่อหน่วย (บาท)"
-                  name="dUnitPrice"
-                  value={objForm.dUnitPrice}
-                  onChange={handleChange}
-                  size="small"
-                  slotProps={{ htmlInput: { step: '0.01', min: '0' } }}
                 />
               </Box>
               <Box>
@@ -334,14 +317,11 @@ export const AdminProductManagementContainer: React.FC = () => {
             <Table size="small">
               <TableHead sx={{ bgcolor: '#f8fafc' }}>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 120 }}>รหัสสินค้า</TableCell>
+                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 140 }}>รหัสสินค้า</TableCell>
                   <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8 }}>ชื่อรายการสินค้า</TableCell>
-                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 160 }}>หมวดหมู่</TableCell>
-                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 90, textAlign: 'center' }}>
+                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 180 }}>หมวดหมู่</TableCell>
+                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 100, textAlign: 'center' }}>
                     หน่วย
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 130, textAlign: 'right' }}>
-                    ราคา/หน่วย
                   </TableCell>
                   <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 110, textAlign: 'center' }}>
                     จัดการ
@@ -395,9 +375,6 @@ export const AdminProductManagementContainer: React.FC = () => {
                           borderRadius: 1.5,
                         }}
                       />
-                    </TableCell>
-                    <TableCell align="right" sx={{ py: 1.8, fontWeight: 700, color: '#0f766e', fontSize: '0.95rem' }}>
-                      ฿{Number(p.dUnitPrice || 0).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                     <TableCell align="center" sx={{ py: 1.8 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5 }}>
@@ -459,23 +436,13 @@ export const AdminProductManagementContainer: React.FC = () => {
                 />
                 <TextField
                   fullWidth
-                  type="number"
-                  label="ราคาต่อหน่วย (บาท)"
-                  name="dUnitPrice"
-                  value={editProduct.dUnitPrice}
+                  label="หมวดหมู่"
+                  name="sCategory"
+                  value={editProduct.sCategory || ''}
                   onChange={handleEditChange}
                   size="small"
-                  slotProps={{ htmlInput: { step: '0.01', min: '0' } }}
                 />
               </Box>
-              <TextField
-                fullWidth
-                label="หมวดหมู่"
-                name="sCategory"
-                value={editProduct.sCategory || ''}
-                onChange={handleEditChange}
-                size="small"
-              />
             </Box>
           )}
         </DialogContent>

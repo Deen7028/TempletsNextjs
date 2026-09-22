@@ -14,11 +14,11 @@ export const exportPurchaseOrderToExcel = async (objPo: IPurchaseOrder) => {
   worksheet.addRow(['Address:', '588 ม.2 ต.อ่าวนาง อ.เมืองกระบี่ จ.กระบี่ 81180', '', 'PO Date:', objPo.dtPoDate]);
   worksheet.addRow(['Tel:', '083-7662244, 098-0253430', '', 'Department:', objPo.sDepartmentName || 'F&B ALACART']);
   worksheet.addRow([]);
-  worksheet.addRow(['Supplier:', objPo.sSupplierName || 'บริษัท ซีพี แอ็กซ์ตร้า จำกัด (มหาชน)', '', 'Payment Term:', objPo.sPaymentTerm || '-']);
+  worksheet.addRow(['Supplier:', 'บริษัท ซีพี แอ็กซ์ตร้า จำกัด (มหาชน)', '', 'Payment Term:', '-']);
   worksheet.addRow(['Supplier Code:', 'สาขากระบี่', '', 'Delivery Date:', objPo.dtDeliveryDate]);
-  worksheet.addRow(['Address:', '119 หมู่ 1 ตำบลไสไทย อำเภอเมืองกระบี่ จังหวัดกระบี่ 81000', '', 'Required Time:', objPo.sRequiredTime || '08:00 - 11:30 น.']);
+  worksheet.addRow(['Address:', '119 หมู่ 1 ตำบลไสไทย อำเภอเมืองกระบี่ จังหวัดกระบี่ 81000', '', 'Required Time:', '08:00 - 11:30 น.']);
   worksheet.addRow(['Contact:', 'คุณวรัทยา สุขทวี', '', 'Deliver To:', 'ออฟฟิศ ไร่เลย์ กราทวิว อ่าวน้ำเมา']);
-  worksheet.addRow(['Tel/Fax:', '-', '', 'Payment Method:', objPo.sPaymentMethod || 'Cr.']);
+  worksheet.addRow(['Tel/Fax:', '-', '', 'Payment Method:', 'Cr.']);
   worksheet.addRow([]);
 
   // 2. หัวตารางรายการสินค้า (แถวที่ 13)

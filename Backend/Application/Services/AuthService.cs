@@ -52,8 +52,14 @@ public class AuthService : IAuthService
             return new AuthResponseDto { Status = "error", Message = "อีเมลนี้มีอยู่ในระบบแล้ว" };
         }
 
-        // จำกัด Role ให้มีแค่ Employee หรือ Admin
-        var sRole = (dto.SRole?.Trim().ToLower() == "admin") ? "Admin" : "Employee";
+        // จำกัด Role ให้มี Employee, Manager หรือ Admin
+        var sInputRole = dto.SRole?.Trim().ToLower();
+        var sRole = sInputRole switch
+        {
+            "admin" => "Admin",
+            "manager" => "Manager",
+            _ => "Employee"
+        };
 
         // 2. Hash Password ด้วย BCrypt ตามมาตรฐาน Security
         var sPasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.SPassword);

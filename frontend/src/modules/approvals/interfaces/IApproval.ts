@@ -1,14 +1,13 @@
 export interface IPurchaseRequestItem {
   nRequestItemId?: number;
   nRequestId?: number;
-  nProductId: number;
+  nProductId?: number | null;
   sProductCode?: string;
   sSnapshotProductName: string;
   sSnapshotUnit: string;
-  dUnitPrice?: number;
   nQuantity: number;
-  dLineTotal?: number;
   sRemarks?: string | null;
+  isCustomItem?: boolean;
 }
 
 export interface IPurchaseRequest {
@@ -22,7 +21,6 @@ export interface IPurchaseRequest {
   sStatus: string;
   sAdminRemarks?: string | null;
   nItemCount?: number;
-  dTotalAmount?: number;
   dtCreatedAt?: string;
   dtUpdatedAt?: string;
   sGeneratedPoNumber?: string | null;
@@ -56,8 +54,6 @@ export interface IPurchaseOrderItem {
   sProductName: string;
   nQuantity: number;
   sUnit: string;
-  dUnitPrice?: number;
-  dLineTotal?: number;
   sRemarks?: string | null;
 }
 
@@ -65,18 +61,9 @@ export interface IPurchaseOrder {
   nPoId?: number;
   sPoNumber: string;
   nRequestId: number;
-  nSupplierId: number;
-  nLocationId: number;
   dtPoDate: string;
   dtDeliveryDate: string;
-  sRequiredTime?: string | null;
-  sPaymentTerm?: string | null;
-  sPaymentMethod?: string | null;
-  dSubTotal?: number;
-  dVatAmount?: number;
-  dGrandTotal?: number;
   sStatus?: string;
-  sSupplierName?: string;
   sDepartmentName?: string;
   lstItems?: IPurchaseOrderItem[];
 }

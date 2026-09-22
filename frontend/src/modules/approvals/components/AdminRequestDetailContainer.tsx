@@ -147,23 +147,15 @@ export const AdminRequestDetailContainer: React.FC<IAdminRequestDetailProps> = (
     exportPurchaseOrderToExcel({
       nRequestId: objPR.nRequestId || nRequestId,
       sPoNumber: objPR.sGeneratedPoNumber,
-      nSupplierId: 1,
-      nLocationId: 1,
       dtPoDate: dayjs(objPR.dtUpdatedAt || objPR.dtCreatedAt).format('DD/MM/YYYY'),
       dtDeliveryDate: dayjs().add(3, 'day').format('DD/MM/YYYY'),
-      sSupplierName: 'บริษัท ซีพี แอ็กซ์ตร้า จำกัด (มหาชน)',
       sDepartmentName: objPR.sDepartmentName || objPR.sDepartmentCode || 'F&B ALACART',
-      sPaymentTerm: '-',
-      sPaymentMethod: 'Cr.',
-      sRequiredTime: '08:00 - 11:30 น.',
       lstItems: (objPR.lstItems || []).map((item, idx) => ({
         nItemSeq: idx + 1,
-        sProductCode: item.sProductCode || `P${String(item.nProductId).padStart(4, '0')}`,
+        sProductCode: item.sProductCode || (item.nProductId ? `P${String(item.nProductId).padStart(4, '0')}` : 'OFF-CATALOG'),
         sProductName: item.sSnapshotProductName,
         nQuantity: item.nQuantity,
         sUnit: item.sSnapshotUnit,
-        dUnitPrice: item.dUnitPrice,
-        dLineTotal: item.dLineTotal,
         sRemarks: item.sRemarks || '',
       })),
     });
@@ -372,43 +364,59 @@ export const AdminRequestDetailContainer: React.FC<IAdminRequestDetailProps> = (
             <Table size="small">
               <TableHead sx={{ bgcolor: '#f8fafc' }}>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.5, width: 110 }}>รหัสสินค้า</TableCell>
+                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.5, width: 140 }}>รหัสสินค้า</TableCell>
                   <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.5 }}>รายการสินค้า</TableCell>
-                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.5, textAlign: 'center', width: 80 }}>
+                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.5, textAlign: 'center', width: 100 }}>
                     จำนวน
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.5, textAlign: 'center', width: 80 }}>
+                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.5, textAlign: 'center', width: 100 }}>
                     หน่วย
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.5, textAlign: 'right', width: 110 }}>
-                    ราคา/หน่วย
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.5, textAlign: 'right', width: 120 }}>
-                    รวมเงิน
                   </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {objPR.lstItems?.map((item, index) => {
-                  const unitPrice = Number(item.dUnitPrice || 0);
-                  const lineTotal = Number(item.dLineTotal || (unitPrice * item.nQuantity));
+                  const isCustom = item.isCustomItem || !item.nProductId || item.sProductCode === 'OFF-CATALOG';
                   return (
                     <TableRow key={item.nRequestItemId || index} hover>
                       <TableCell sx={{ py: 1.8 }}>
                         <Chip
-                          label={item.sProductCode || (item.nProductId ? `90142${item.nProductId}` : '-')}
+                          label={isCustom ? 'นอกระบบ' : (item.sProductCode || (item.nProductId ? `90142${item.nProductId}` : '-'))}
                           size="small"
                           sx={{
                             fontWeight: 700,
                             fontSize: '0.75rem',
-                            bgcolor: '#f1f5f9',
-                            color: '#1e293b',
+                            bgcolor: isCustom ? '#fff7ed' : '#f1f5f9',
+                            color: isCustom ? '#c2410c' : '#1e293b',
+                            border: isCustom ? '1px solid #fed7aa' : 'none',
                             borderRadius: 1.5,
                           }}
                         />
                       </TableCell>
                       <TableCell sx={{ py: 1.8, fontWeight: 600, color: '#1e293b' }}>
-                        {item.sSnapshotProductName}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                          <span>{item.sSnapshotProductName}</span>
+                          {isCustom && (
+                            <Chip
+                              label="สั่งนอกระบบ"
+                              size="small"
+                              sx={{
+                                height: 20,
+                                fontSize: '0.68rem',
+                                fontWeight: 700,
+                                bgcolor: '#fef3c7',
+                                color: '#b45309',
+                                border: '1px solid #fde68a',
+                                borderRadius: 1,
+                              }}
+                            />
+                          )}
+                        </Box>
+                        {item.sRemarks && (
+                          <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.3 }}>
+                            หมายเหตุ: {item.sRemarks}
+                          </Typography>
+                        )}
                       </TableCell>
                       <TableCell align="center" sx={{ py: 1.8, fontWeight: 700, color: '#1e293b' }}>
                         {item.nQuantity}
@@ -426,29 +434,9 @@ export const AdminRequestDetailContainer: React.FC<IAdminRequestDetailProps> = (
                           }}
                         />
                       </TableCell>
-                      <TableCell align="right" sx={{ py: 1.8, fontWeight: 600, color: '#475569' }}>
-                        ฿{unitPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </TableCell>
-                      <TableCell align="right" sx={{ py: 1.8, fontWeight: 700, color: '#0f766e' }}>
-                        ฿{lineTotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </TableCell>
                     </TableRow>
                   );
                 })}
-
-                {/* แถวสรุปยอดเงินรวมทั้งหมด */}
-                <TableRow sx={{ bgcolor: '#f8fafc' }}>
-                  <TableCell colSpan={4} align="right" sx={{ py: 1.8, fontWeight: 700, color: '#334155' }}>
-                    ยอดรวมประมาณการทั้งสิ้น :
-                  </TableCell>
-                  <TableCell colSpan={2} align="right" sx={{ py: 1.8, fontWeight: 800, color: '#0f766e', fontSize: '1.05rem' }}>
-                    ฿{Number(
-                      objPR.dTotalAmount ?? 
-                      objPR.lstItems?.reduce((acc, it) => acc + Number(it.dLineTotal || ((it.dUnitPrice || 0) * it.nQuantity)), 0) ?? 
-                      0
-                    ).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </TableCell>
-                </TableRow>
               </TableBody>
             </Table>
           </TableContainer>
@@ -457,8 +445,7 @@ export const AdminRequestDetailContainer: React.FC<IAdminRequestDetailProps> = (
         {/* Mobile Cards for Items */}
         <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: 1.5 }}>
           {objPR.lstItems?.map((item, index) => {
-            const unitPrice = Number(item.dUnitPrice || 0);
-            const lineTotal = Number(item.dLineTotal || (unitPrice * item.nQuantity));
+            const isCustom = item.isCustomItem || !item.nProductId || item.sProductCode === 'OFF-CATALOG';
             return (
               <Card
                 key={item.nRequestItemId || index}
@@ -466,70 +453,62 @@ export const AdminRequestDetailContainer: React.FC<IAdminRequestDetailProps> = (
                 sx={{
                   p: 1.8,
                   borderRadius: 2.5,
-                  border: '1px solid #e2e8f0',
-                  bgcolor: '#ffffff',
+                  border: isCustom ? '1px solid #fed7aa' : '1px solid #e2e8f0',
+                  bgcolor: isCustom ? '#fffbf5' : '#ffffff',
                 }}
               >
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 700, color: '#1e293b', flex: 1, mr: 1 }}>
-                    {item.sSnapshotProductName}
-                  </Typography>
+                  <Box sx={{ flex: 1, mr: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'wrap' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 700, color: '#1e293b' }}>
+                        {item.sSnapshotProductName}
+                      </Typography>
+                      {isCustom && (
+                        <Chip
+                          label="สั่งนอกระบบ"
+                          size="small"
+                          sx={{
+                            height: 18,
+                            fontSize: '0.65rem',
+                            fontWeight: 700,
+                            bgcolor: '#fef3c7',
+                            color: '#b45309',
+                            borderRadius: 1,
+                          }}
+                        />
+                      )}
+                    </Box>
+                    {item.sRemarks && (
+                      <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.3 }}>
+                        หมายเหตุ: {item.sRemarks}
+                      </Typography>
+                    )}
+                  </Box>
                   <Chip
-                    label={item.sProductCode || (item.nProductId ? `90142${item.nProductId}` : '-')}
+                    label={isCustom ? 'นอกระบบ' : (item.sProductCode || (item.nProductId ? `90142${item.nProductId}` : '-'))}
                     size="small"
                     sx={{
                       fontWeight: 700,
                       fontSize: '0.72rem',
                       height: 22,
-                      bgcolor: '#f1f5f9',
-                      color: '#1e293b',
+                      bgcolor: isCustom ? '#fff7ed' : '#f1f5f9',
+                      color: isCustom ? '#c2410c' : '#1e293b',
                     }}
                   />
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 0.5, borderTop: '1px dashed #f1f5f9' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Typography variant="caption" color="text.secondary">
-                      จำนวน:
+                      จำนวนที่ขอสั่งซื้อ:
                     </Typography>
                     <Typography variant="body2" sx={{ fontWeight: 700, color: '#1e293b' }}>
                       {item.nQuantity} {item.sSnapshotUnit}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
-                      (@฿{unitPrice.toLocaleString('th-TH', { minimumFractionDigits: 2 })})
-                    </Typography>
                   </Box>
-                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#0f766e' }}>
-                    ฿{lineTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
-                  </Typography>
                 </Box>
               </Card>
             );
           })}
-
-          {/* Mobile Grand Total Summary Card */}
-          <Card
-            elevation={0}
-            sx={{
-              p: 2,
-              borderRadius: 2.5,
-              bgcolor: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <Typography variant="body2" sx={{ fontWeight: 700, color: '#334155' }}>
-              ยอดรวมประมาณการทั้งสิ้น:
-            </Typography>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f766e', fontSize: '1.15rem' }}>
-              ฿{Number(
-                objPR.dTotalAmount ?? 
-                objPR.lstItems?.reduce((acc, it) => acc + Number(it.dLineTotal || ((it.dUnitPrice || 0) * it.nQuantity)), 0) ?? 
-                0
-              ).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </Typography>
-          </Card>
         </Box>
       </Box>
 

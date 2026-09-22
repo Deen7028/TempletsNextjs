@@ -9,21 +9,17 @@ public partial class TbPurchaseRequestItem
 
     public int NRequestId { get; set; }
 
-    public int NProductId { get; set; }
+    public int? NProductId { get; set; }
 
     public string SSnapshotProductName { get; set; } = null!;
 
     public string SSnapshotUnit { get; set; } = null!;
 
-    public decimal DUnitPrice { get; set; }
-
     public int NQuantity { get; set; }
-
-    public decimal DLineTotal { get; set; }
 
     public string? SRemarks { get; set; }
 
-    public virtual TmProduct NProduct { get; set; } = null!;
+    public virtual TmProduct? NProduct { get; set; }
 
     public virtual TbPurchaseRequest NRequest { get; set; } = null!;
 }

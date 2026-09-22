@@ -35,9 +35,7 @@ public class ProductsController : ControllerBase
                 sProductCode = p.SProductCode,
                 sProductName = p.SProductName,
                 sUnit = p.SUnit,
-                dUnitPrice = p.DUnitPrice,
                 sCategory = p.SCategory,
-                sImageUrl = p.SImageUrl,
                 isActive = p.IsActive
             })
             .ToListAsync();
@@ -50,10 +48,7 @@ public class ProductsController : ControllerBase
         public string SProductCode { get; set; } = string.Empty;
         public string SProductName { get; set; } = string.Empty;
         public string SUnit { get; set; } = string.Empty;
-        public decimal DUnitPrice { get; set; }
         public string? SCategory { get; set; }
-        public string? SImageUrl { get; set; }
-        public int? NDefaultSupplierId { get; set; }
     }
 
     [HttpPost]
@@ -75,10 +70,7 @@ public class ProductsController : ControllerBase
             SProductCode = dto.SProductCode.Trim(),
             SProductName = dto.SProductName.Trim(),
             SUnit = dto.SUnit.Trim(),
-            DUnitPrice = dto.DUnitPrice,
             SCategory = dto.SCategory?.Trim(),
-            SImageUrl = dto.SImageUrl?.Trim(),
-            NDefaultSupplierId = dto.NDefaultSupplierId ?? 1,
             IsActive = true,
             DtCreatedAt = DateTime.UtcNow
         };
@@ -94,9 +86,7 @@ public class ProductsController : ControllerBase
         public int NProductId { get; set; }
         public string SProductName { get; set; } = string.Empty;
         public string SUnit { get; set; } = string.Empty;
-        public decimal DUnitPrice { get; set; }
         public string? SCategory { get; set; }
-        public string? SImageUrl { get; set; }
     }
 
     [HttpPost("update")]
@@ -115,9 +105,7 @@ public class ProductsController : ControllerBase
 
         product.SProductName = dto.SProductName.Trim();
         product.SUnit = dto.SUnit.Trim();
-        product.DUnitPrice = dto.DUnitPrice;
         product.SCategory = dto.SCategory?.Trim();
-        product.SImageUrl = dto.SImageUrl?.Trim();
 
         await _context.SaveChangesAsync();
 

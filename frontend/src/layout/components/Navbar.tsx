@@ -212,7 +212,7 @@ export const Navbar = () => {
               ตะกร้าสินค้า
             </Button>
 
-            {objUser?.sRole === 'Admin' && (
+            {(objUser?.sRole === 'Admin' || objUser?.sRole === 'Manager') && (
               <>
                 <Button
                   onClick={handleOpenAdminMenu}
@@ -232,7 +232,7 @@ export const Navbar = () => {
                     textTransform: 'none',
                   }}
                 >
-                  จัดการระบบ (Admin)
+                  {objUser?.sRole === 'Admin' ? 'จัดการระบบ (Admin)' : 'จัดการระบบ (Manager)'}
                 </Button>
 
                 <Menu
@@ -318,26 +318,29 @@ export const Navbar = () => {
                     </Typography>
                   </MenuItem>
 
-                  <MenuItem
-                    component={Link}
-                    href="/admin/users"
-                    onClick={handleCloseAdminMenu}
-                    sx={{
-                      py: 1.2,
-                      px: 2,
-                      gap: 1.5,
-                      borderRadius: 2,
-                      my: 0.3,
-                      bgcolor: sPathname === '/admin/users' ? '#eff6ff' : 'transparent',
-                      color: sPathname === '/admin/users' ? '#2563eb' : '#1e293b',
-                      '&:hover': { bgcolor: '#f8fafc' },
-                    }}
-                  >
-                    <ManageAccountsIcon sx={{ fontSize: 20, color: sPathname === '/admin/users' ? '#2563eb' : '#64748b' }} />
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      จัดการบัญชีผู้ใช้
-                    </Typography>
-                  </MenuItem>
+                  {/* เฉพาะ Admin เท่านั้นที่เห็นเมนูจัดการบัญชีผู้ใช้ */}
+                  {objUser?.sRole === 'Admin' && (
+                    <MenuItem
+                      component={Link}
+                      href="/admin/users"
+                      onClick={handleCloseAdminMenu}
+                      sx={{
+                        py: 1.2,
+                        px: 2,
+                        gap: 1.5,
+                        borderRadius: 2,
+                        my: 0.3,
+                        bgcolor: sPathname === '/admin/users' ? '#eff6ff' : 'transparent',
+                        color: sPathname === '/admin/users' ? '#2563eb' : '#1e293b',
+                        '&:hover': { bgcolor: '#f8fafc' },
+                      }}
+                    >
+                      <ManageAccountsIcon sx={{ fontSize: 20, color: sPathname === '/admin/users' ? '#2563eb' : '#64748b' }} />
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        จัดการบัญชีผู้ใช้
+                      </Typography>
+                    </MenuItem>
+                  )}
                 </Menu>
               </>
             )}
@@ -412,11 +415,21 @@ export const Navbar = () => {
                       label={objUser.sRole || 'Employee'}
                       sx={{
                         mt: 1.2,
-                        fontWeight: 600,
+                        fontWeight: 700,
                         fontSize: '0.72rem',
                         height: 22,
-                        bgcolor: '#e0f2fe',
-                        color: '#0284c7',
+                        bgcolor:
+                          objUser.sRole === 'Admin'
+                            ? '#fef3c7'
+                            : objUser.sRole === 'Manager'
+                            ? '#ede9fe'
+                            : '#e0f2fe',
+                        color:
+                          objUser.sRole === 'Admin'
+                            ? '#b45309'
+                            : objUser.sRole === 'Manager'
+                            ? '#6d28d9'
+                            : '#0284c7',
                         borderRadius: 1.5,
                         px: 0.5,
                       }}
@@ -606,10 +619,20 @@ export const Navbar = () => {
                 size="small"
                 label={objUser.sRole || 'Employee'}
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 700,
                   fontSize: '0.7rem',
-                  bgcolor: '#e0f2fe',
-                  color: '#0284c7',
+                  bgcolor:
+                    objUser.sRole === 'Admin'
+                      ? '#fef3c7'
+                      : objUser.sRole === 'Manager'
+                      ? '#ede9fe'
+                      : '#e0f2fe',
+                  color:
+                    objUser.sRole === 'Admin'
+                      ? '#b45309'
+                      : objUser.sRole === 'Manager'
+                      ? '#6d28d9'
+                      : '#0284c7',
                 }}
               />
               {objUser.sDepartmentName && (
@@ -683,11 +706,11 @@ export const Navbar = () => {
           </ListItem>
 
 
-          {objUser?.sRole === 'Admin' && (
+          {(objUser?.sRole === 'Admin' || objUser?.sRole === 'Manager') && (
             <>
               <Divider sx={{ my: 1.5 }} />
               <Typography variant="caption" sx={{ px: 2, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                เมนูผู้ดูแลระบบ (Admin)
+                {objUser?.sRole === 'Admin' ? 'เมนูผู้ดูแลระบบ (Admin)' : 'เมนูผู้จัดการ (Manager)'}
               </Typography>
 
               <ListItem disablePadding sx={{ mt: 1, mb: 0.8 }}>
@@ -771,32 +794,35 @@ export const Navbar = () => {
                 </ListItemButton>
               </ListItem>
 
-              <ListItem disablePadding sx={{ mb: 0.8 }}>
-                <ListItemButton
-                  component={Link}
-                  href="/admin/users"
-                  onClick={() => setIsDrawerOpen(false)}
-                  sx={{
-                    borderRadius: 2,
-                    bgcolor: sPathname === '/admin/users' ? '#eff6ff' : 'transparent',
-                    color: sPathname === '/admin/users' ? '#2563eb' : '#334155',
-                    fontWeight: sPathname === '/admin/users' ? 700 : 500,
-                    '&:hover': { bgcolor: '#f1f5f9' },
-                    py: 1.2,
-                  }}
-                >
-                  <ListItemIcon sx={{ minWidth: 38, color: sPathname === '/admin/users' ? '#2563eb' : '#64748b' }}>
-                    <ManageAccountsIcon sx={{ fontSize: 20 }} />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={
-                      <Typography sx={{ fontSize: '0.92rem', fontWeight: sPathname === '/admin/users' ? 700 : 500 }}>
-                        จัดการบัญชีผู้ใช้
-                      </Typography>
-                    }
-                  />
-                </ListItemButton>
-              </ListItem>
+              {/* เฉพาะ Admin เท่านั้นที่เห็นเมนูจัดการบัญชีผู้ใช้ */}
+              {objUser?.sRole === 'Admin' && (
+                <ListItem disablePadding sx={{ mb: 0.8 }}>
+                  <ListItemButton
+                    component={Link}
+                    href="/admin/users"
+                    onClick={() => setIsDrawerOpen(false)}
+                    sx={{
+                      borderRadius: 2,
+                      bgcolor: sPathname === '/admin/users' ? '#eff6ff' : 'transparent',
+                      color: sPathname === '/admin/users' ? '#2563eb' : '#334155',
+                      fontWeight: sPathname === '/admin/users' ? 700 : 500,
+                      '&:hover': { bgcolor: '#f1f5f9' },
+                      py: 1.2,
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 38, color: sPathname === '/admin/users' ? '#2563eb' : '#64748b' }}>
+                      <ManageAccountsIcon sx={{ fontSize: 20 }} />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={
+                        <Typography sx={{ fontSize: '0.92rem', fontWeight: sPathname === '/admin/users' ? 700 : 500 }}>
+                          จัดการบัญชีผู้ใช้
+                        </Typography>
+                      }
+                    />
+                  </ListItemButton>
+                </ListItem>
+              )}
 
               <Divider sx={{ my: 1.5 }} />
             </>

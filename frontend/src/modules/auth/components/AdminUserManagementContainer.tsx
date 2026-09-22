@@ -38,12 +38,21 @@ import EditIcon from '@mui/icons-material/Edit';
 import SearchIcon from '@mui/icons-material/Search';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import PersonIcon from '@mui/icons-material/Person';
+import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import BlockIcon from '@mui/icons-material/Block';
+import LockPersonIcon from '@mui/icons-material/LockPerson';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/modules/auth/context/AuthContext';
 import { authService } from '../services/authService';
 import { IEmployeeItem, IDepartment } from '../interfaces/IAuth';
 
 export const AdminUserManagementContainer: React.FC = () => {
+  const { objUser } = useAuth();
+  const objRouter = useRouter();
+  const isAdmin = objUser?.sRole === 'Admin';
+
   const [lstEmployees, setLstEmployees] = useState<IEmployeeItem[]>([]);
   const [lstDepartments, setLstDepartments] = useState<IDepartment[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -145,6 +154,76 @@ export const AdminUserManagementContainer: React.FC = () => {
     const role = (emp.sRole || '').toLowerCase();
     return fullName.includes(query) || email.includes(query) || dept.includes(query) || role.includes(query);
   });
+
+  if (!isAdmin) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '65vh',
+          px: 2,
+        }}
+      >
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 4, sm: 5 },
+            maxWidth: 480,
+            width: '100%',
+            textAlign: 'center',
+            borderRadius: 4,
+            border: '1px solid #fee2e2',
+            bgcolor: '#fffafb',
+            boxShadow: '0 10px 25px -5px rgba(239, 68, 68, 0.08)',
+          }}
+        >
+          <Box
+            sx={{
+              width: 72,
+              height: 72,
+              borderRadius: '50%',
+              bgcolor: '#fee2e2',
+              color: '#dc2626',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mx: 'auto',
+              mb: 2.5,
+            }}
+          >
+            <LockPersonIcon sx={{ fontSize: 38 }} />
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: '#991b1b', mb: 1 }}>
+            ไม่มีสิทธิ์เข้าถึงหน้านี้
+          </Typography>
+          <Typography variant="body2" sx={{ color: '#64748b', mb: 3.5, lineHeight: 1.6 }}>
+            หน้าจัดการบัญชีผู้ใช้งานสงวนสิทธิ์เฉพาะผู้ดูแลระบบระดับสูง (Admin Only) เท่านั้น
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<ArrowBackIcon />}
+            onClick={() => objRouter.push('/admin/requests')}
+            sx={{
+              borderRadius: 2,
+              px: 3,
+              py: 1.1,
+              bgcolor: '#2563eb',
+              textTransform: 'none',
+              fontWeight: 600,
+              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)',
+              '&:hover': {
+                bgcolor: '#1d4ed8',
+              },
+            }}
+          >
+            กลับสู่หน้ารายการคำขอ (PR)
+          </Button>
+        </Paper>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ mx: 'auto', px: { xs: 1.5, sm: 2.5 }, py: 3 }}>
@@ -291,6 +370,18 @@ export const AdminUserManagementContainer: React.FC = () => {
                               fontWeight: 700,
                               bgcolor: '#fef3c7',
                               color: '#b45309',
+                              borderRadius: 1.5,
+                            }}
+                          />
+                        ) : emp.sRole === 'Manager' ? (
+                          <Chip
+                            icon={<SupervisorAccountIcon sx={{ fontSize: '16px !important' }} />}
+                            label="Manager"
+                            size="small"
+                            sx={{
+                              fontWeight: 700,
+                              bgcolor: '#ede9fe',
+                              color: '#6d28d9',
                               borderRadius: 1.5,
                             }}
                           />
@@ -444,6 +535,20 @@ export const AdminUserManagementContainer: React.FC = () => {
                           borderRadius: 1.5,
                         }}
                       />
+                    ) : emp.sRole === 'Manager' ? (
+                      <Chip
+                        icon={<SupervisorAccountIcon sx={{ fontSize: '15px !important' }} />}
+                        label="Manager"
+                        size="small"
+                        sx={{
+                          fontWeight: 700,
+                          fontSize: '0.75rem',
+                          height: 24,
+                          bgcolor: '#ede9fe',
+                          color: '#6d28d9',
+                          borderRadius: 1.5,
+                        }}
+                      />
                     ) : (
                       <Chip
                         icon={<PersonIcon sx={{ fontSize: '15px !important' }} />}
@@ -537,10 +642,16 @@ export const AdminUserManagementContainer: React.FC = () => {
                         Employee (พนักงานทั่วไป)
                       </Box>
                     </MenuItem>
+                    <MenuItem value="Manager">
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <SupervisorAccountIcon fontSize="small" sx={{ color: '#6d28d9' }} />
+                        Manager (ผู้จัดการ/อนุมัติ PR)
+                      </Box>
+                    </MenuItem>
                     <MenuItem value="Admin">
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <AdminPanelSettingsIcon fontSize="small" sx={{ color: '#d97706' }} />
-                        Admin (ผู้ดูแลระบบ)
+                        Admin (ผู้ดูแลระบบสูงสุด)
                       </Box>
                     </MenuItem>
                   </Select>
