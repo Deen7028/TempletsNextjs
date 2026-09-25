@@ -232,7 +232,7 @@ export const Navbar = () => {
                     textTransform: 'none',
                   }}
                 >
-                  {objUser?.sRole === 'Admin' ? 'จัดการระบบ (Admin)' : 'จัดการระบบ (Manager)'}
+                  {objUser?.sRole === 'Admin' ? 'จัดการคำขอสั่งซื้อ ' : 'จัดการคำขอสั่งซื้อ'}
                 </Button>
 
                 <Menu

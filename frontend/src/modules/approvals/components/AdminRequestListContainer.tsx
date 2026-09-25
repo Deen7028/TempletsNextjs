@@ -169,7 +169,7 @@ export const AdminRequestListContainer: React.FC = () => {
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2.5, flexWrap: 'wrap', gap: 1.5 }}>
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 700, color: '#174785', fontSize: { xs: '1.25rem', sm: '1.45rem' } }}>
-           Admin : รายการที่รอตรวจสอบ
+            รายการที่รอตรวจสอบ
           </Typography>
           <Typography variant="body2" color="text.secondary">
             รายการขอสั่งซื้อสินค้า (PR) จากแผนกต่างๆ
