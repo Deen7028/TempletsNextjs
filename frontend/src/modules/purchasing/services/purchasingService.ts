@@ -6,6 +6,10 @@ export const purchasingService = {
    * ส่งคำขอสั่งซื้อ (PR) บันทึกลงฐานข้อมูล
    */
   async createPurchaseRequest(objPayload: IPurchaseRequest): Promise<{ status: string; message: string; data?: any }> {
-    return await apiClient.post<{ status: string; message: string; data?: any }>('/api/purchaserequests', objPayload);
+    const res = await apiClient.post<{ status: string; message: string; data?: any }>('/api/purchaserequests', objPayload);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('api-update', { detail: { sEntityType: 'PurchaseRequest' } }));
+    }
+    return res;
   },
 };

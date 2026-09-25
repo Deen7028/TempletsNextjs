@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -35,6 +35,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth, authService } from '@/modules/auth';
 import { useCart } from '@/modules/purchasing';
+import { approvalService } from '@/modules/approvals/services/approvalService';
 
 
 export const Navbar = () => {
@@ -42,6 +43,34 @@ export const Navbar = () => {
   const objRouter = useRouter();
   const { objUser, logoutUser } = useAuth();
   const { nTotalItems } = useCart();
+
+  const [nPendingApprovalCount, setNPendingApprovalCount] = useState<number>(0);
+
+  const fetchPendingApprovalCount = async () => {
+    if (objUser?.sRole === 'Admin' || objUser?.sRole === 'Manager') {
+      const summary = await approvalService.getSummaryCounts();
+      setNPendingApprovalCount(summary.nPending);
+    } else {
+      setNPendingApprovalCount(0);
+    }
+  };
+
+  useEffect(() => {
+    fetchPendingApprovalCount();
+
+    const handleApiUpdate = () => {
+      fetchPendingApprovalCount();
+    };
+
+    window.addEventListener('api-update', handleApiUpdate);
+    return () => {
+      window.removeEventListener('api-update', handleApiUpdate);
+    };
+  }, [objUser]);
+
+  useEffect(() => {
+    fetchPendingApprovalCount();
+  }, [sPathname]);
 
   // Mobile / Tablet Drawer State
 
@@ -216,7 +245,11 @@ export const Navbar = () => {
               <>
                 <Button
                   onClick={handleOpenAdminMenu}
-                  startIcon={<AdminPanelSettingsIcon sx={{ fontSize: 18 }} />}
+                  startIcon={
+                    <Badge badgeContent={nPendingApprovalCount} color="error" max={99}>
+                      <AdminPanelSettingsIcon sx={{ fontSize: 18 }} />
+                    </Badge>
+                  }
                   endIcon={<KeyboardArrowDownIcon sx={{ fontSize: 18 }} />}
                   sx={{
                     color: '#ffffff',
@@ -244,7 +277,7 @@ export const Navbar = () => {
                       elevation: 4,
                       sx: {
                         borderRadius: 3,
-                        minWidth: 220,
+                        minWidth: 230,
                         p: 0.8,
                         mt: 1.5,
                         boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
@@ -265,15 +298,28 @@ export const Navbar = () => {
                       gap: 1.5,
                       borderRadius: 2,
                       my: 0.3,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
                       bgcolor: sPathname === '/admin/requests' ? '#eff6ff' : 'transparent',
                       color: sPathname === '/admin/requests' ? '#2563eb' : '#1e293b',
                       '&:hover': { bgcolor: '#f8fafc' },
                     }}
                   >
-                    <PlaylistAddCheckIcon sx={{ fontSize: 20, color: sPathname === '/admin/requests' ? '#2563eb' : '#64748b' }} />
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      ตรวจสอบคำขอ (PR)
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <PlaylistAddCheckIcon sx={{ fontSize: 20, color: sPathname === '/admin/requests' ? '#2563eb' : '#64748b' }} />
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        ตรวจสอบคำขอ (PR)
+                      </Typography>
+                    </Box>
+                    {nPendingApprovalCount > 0 && (
+                      <Chip
+                        label={nPendingApprovalCount}
+                        size="small"
+                        color="error"
+                        sx={{ height: 20, fontSize: '0.72rem', fontWeight: 700, px: 0.5 }}
+                      />
+                    )}
                   </MenuItem>
 
                   <MenuItem
@@ -728,13 +774,25 @@ export const Navbar = () => {
                   }}
                 >
                   <ListItemIcon sx={{ minWidth: 38, color: sPathname === '/admin/requests' ? '#2563eb' : '#64748b' }}>
-                    <PlaylistAddCheckIcon sx={{ fontSize: 20 }} />
+                    <Badge badgeContent={nPendingApprovalCount} color="error">
+                      <PlaylistAddCheckIcon sx={{ fontSize: 20 }} />
+                    </Badge>
                   </ListItemIcon>
                   <ListItemText
                     primary={
-                      <Typography sx={{ fontSize: '0.92rem', fontWeight: sPathname === '/admin/requests' ? 700 : 500 }}>
-                        ตรวจสอบคำขอ (PR)
-                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                        <Typography sx={{ fontSize: '0.92rem', fontWeight: sPathname === '/admin/requests' ? 700 : 500 }}>
+                          ตรวจสอบคำขอ (PR)
+                        </Typography>
+                        {nPendingApprovalCount > 0 && (
+                          <Chip
+                            label={nPendingApprovalCount}
+                            size="small"
+                            color="error"
+                            sx={{ height: 20, fontSize: '0.72rem', fontWeight: 700, px: 0.5 }}
+                          />
+                        )}
+                      </Box>
                     }
                   />
                 </ListItemButton>

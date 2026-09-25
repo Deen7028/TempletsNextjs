@@ -27,7 +27,7 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { IPurchaseRequest } from '../interfaces/IApproval';
-import { approvalService } from '../services/approvalService';
+import { approvalService, IApprovalSummary } from '../services/approvalService';
 import dayjs from 'dayjs';
 type TabStatus = 'PENDING_APPROVAL' | 'APPROVED' | 'ALL';
 
@@ -41,13 +41,24 @@ export const AdminRequestListContainer: React.FC = () => {
   const [nPage, setNPage] = useState<number>(0);
   const [nRowsPerPage, setNRowsPerPage] = useState<number>(10);
   const [nTotalRequests, setNTotalRequests] = useState<number>(0);
+  const [objSummary, setObjSummary] = useState<IApprovalSummary>({
+    nPending: 0,
+    nApproved: 0,
+    nRevision: 0,
+    nRejected: 0,
+    nTotal: 0,
+  });
 
   const loadRequests = async (status: string = currentTab, page: number = nPage, pageSize: number = nRowsPerPage) => {
     setIsLoading(true);
     try {
-      const res = await approvalService.getPurchaseRequests(status, undefined, page + 1, pageSize);
+      const [res, summary] = await Promise.all([
+        approvalService.getPurchaseRequests(status, undefined, page + 1, pageSize),
+        approvalService.getSummaryCounts(),
+      ]);
       setLstAllRequests(res.data);
       setNTotalRequests(res.total);
+      setObjSummary(summary);
     } catch (err) {
       console.error(err);
     } finally {
@@ -59,15 +70,22 @@ export const AdminRequestListContainer: React.FC = () => {
     loadRequests(currentTab, nPage, nRowsPerPage);
   }, [currentTab, nPage, nRowsPerPage]);
 
+  useEffect(() => {
+    const handleApiUpdate = () => {
+      loadRequests(currentTab, nPage, nRowsPerPage);
+    };
+    window.addEventListener('api-update', handleApiUpdate);
+    return () => {
+      window.removeEventListener('api-update', handleApiUpdate);
+    };
+  }, [currentTab, nPage, nRowsPerPage]);
+
   const handleTabChange = (_: React.SyntheticEvent, newValue: TabStatus) => {
     setCurrentTab(newValue);
     setNPage(0);
   };
 
   const lstFilteredRequests = lstAllRequests;
-
-  const nPendingCount = lstAllRequests.filter((r) => r.sStatus === 'PENDING_APPROVAL').length;
-  const nApprovedCount = lstAllRequests.filter((r) => r.sStatus === 'APPROVED').length;
 
   const getStatusChip = (sStatus: string) => {
     switch (sStatus) {
@@ -227,8 +245,9 @@ export const AdminRequestListContainer: React.FC = () => {
                     bgcolor: currentTab === 'PENDING_APPROVAL' ? '#ffffff' : '#f1f5f9',
                     color: currentTab === 'PENDING_APPROVAL' ? '#2563eb' : '#475569',
                     borderRadius: '50%',
-                    width: 20,
+                    minWidth: 20,
                     height: 20,
+                    px: 0.5,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -236,7 +255,7 @@ export const AdminRequestListContainer: React.FC = () => {
                     fontWeight: 700,
                   }}
                 >
-                  {nPendingCount}
+                  {objSummary.nPending}
                 </Box>
               </Box>
             }
@@ -251,8 +270,9 @@ export const AdminRequestListContainer: React.FC = () => {
                     bgcolor: currentTab === 'APPROVED' ? '#ffffff' : '#f1f5f9',
                     color: currentTab === 'APPROVED' ? '#2563eb' : '#475569',
                     borderRadius: '50%',
-                    width: 20,
+                    minWidth: 20,
                     height: 20,
+                    px: 0.5,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -260,12 +280,36 @@ export const AdminRequestListContainer: React.FC = () => {
                     fontWeight: 700,
                   }}
                 >
-                  {nApprovedCount}
+                  {objSummary.nApproved}
                 </Box>
               </Box>
             }
           />
-          <Tab value="ALL" label="ทั้งหมด" />
+          <Tab
+            value="ALL"
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <span>ทั้งหมด</span>
+                <Box
+                  sx={{
+                    bgcolor: currentTab === 'ALL' ? '#ffffff' : '#f1f5f9',
+                    color: currentTab === 'ALL' ? '#2563eb' : '#475569',
+                    borderRadius: '50%',
+                    minWidth: 20,
+                    height: 20,
+                    px: 0.5,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                  }}
+                >
+                  {objSummary.nTotal}
+                </Box>
+              </Box>
+            }
+          />
         </Tabs>
       </Box>
 

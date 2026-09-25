@@ -6,7 +6,30 @@ export interface IPaginatedResult<T> {
   total: number;
 }
 
+export interface IApprovalSummary {
+  nPending: number;
+  nApproved: number;
+  nRevision: number;
+  nRejected: number;
+  nTotal: number;
+}
+
 export const approvalService = {
+  /**
+   * ดึงจำนวนสรุปตามสถานะ PR ทั้งหมด
+   */
+  async getSummaryCounts(): Promise<IApprovalSummary> {
+    try {
+      const res = await apiClient.get<{ status: string; data: IApprovalSummary }>('/api/purchaserequests/summary');
+      if (res?.data) {
+        return res.data;
+      }
+    } catch (err) {
+      console.error('Error fetching summary counts:', err);
+    }
+    return { nPending: 0, nApproved: 0, nRevision: 0, nRejected: 0, nTotal: 0 };
+  },
+
   /**
    * ดึงรายการคำขอสั่งซื้อ (PR) ทั้งหมดสำหรับ Admin (รองรับแบ่งหน้าและค้นหา)
    */
@@ -45,9 +68,13 @@ export const approvalService = {
     nRequestId: number,
     objPayload: IAdminReviewRequest
   ): Promise<IAdminReviewResponse> {
-    return await apiClient.post<IAdminReviewResponse>(
+    const res = await apiClient.post<IAdminReviewResponse>(
       `/api/purchaserequests/${nRequestId}/review`,
       objPayload
     );
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('api-update', { detail: { sEntityType: 'PurchaseRequest' } }));
+    }
+    return res;
   },
 };

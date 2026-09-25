@@ -125,6 +125,35 @@ public class PurchaseRequestsController : ControllerBase
         }
     }
 
+    [HttpGet("summary")]
+    public async Task<IActionResult> GetSummaryCounts()
+    {
+        var counts = await _context.TbPurchaseRequests
+            .Where(r => r.IsDeleted == false)
+            .GroupBy(r => r.SStatus)
+            .Select(g => new { status = g.Key, count = g.Count() })
+            .ToListAsync();
+
+        int nPending = counts.FirstOrDefault(x => x.status == "PENDING_APPROVAL")?.count ?? 0;
+        int nApproved = counts.FirstOrDefault(x => x.status == "APPROVED")?.count ?? 0;
+        int nRevision = counts.FirstOrDefault(x => x.status == "REVISION")?.count ?? 0;
+        int nRejected = counts.FirstOrDefault(x => x.status == "REJECTED")?.count ?? 0;
+        int nTotal = counts.Sum(x => x.count);
+
+        return Ok(new
+        {
+            status = "success",
+            data = new
+            {
+                nPending = nPending,
+                nApproved = nApproved,
+                nRevision = nRevision,
+                nRejected = nRejected,
+                nTotal = nTotal
+            }
+        });
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetPurchaseRequests([FromQuery] string? status, [FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
