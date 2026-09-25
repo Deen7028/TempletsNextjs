@@ -16,9 +16,10 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow,
   Paper,
+  TableRow,
 } from '@mui/material';
+import { CustomPagination } from '@/shared/components';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import SearchIcon from '@mui/icons-material/Search';
@@ -30,6 +31,13 @@ import { ICartItem } from '../context/CartContext';
 interface IProductSearchProps {
   lstProducts: IProduct[];
   cartItems?: ICartItem[];
+  nPage?: number;
+  nRowsPerPage?: number;
+  nTotalProducts?: number;
+  sSearch?: string;
+  onSearchChange?: (val: string) => void;
+  onPageChange?: (newPage: number) => void;
+  onRowsPerPageChange?: (newSize: number) => void;
   onAddToCart: (objProduct: IProduct, nQuantity: number) => void;
   onUpdateCartQty?: (nProductId: number, nQuantity: number) => void;
   onRemoveFromCart?: (nProductId: number) => void;
@@ -39,11 +47,20 @@ interface IProductSearchProps {
 export const ProductSearchContainer: React.FC<IProductSearchProps> = ({
   lstProducts,
   cartItems = [],
+  nPage = 0,
+  nRowsPerPage = 10,
+  nTotalProducts = 0,
+  sSearch = '',
+  onSearchChange,
+  onPageChange,
+  onRowsPerPageChange,
   onAddToCart,
 }) => {
-  const [sKeyword, setSKeyword] = useState<string>('');
+  const [sKeywordLocal, setSKeywordLocal] = useState<string>('');
   const [nQuantities, setNQuantities] = useState<Record<number, number>>({});
   const [addedItemMap, setAddedItemMap] = useState<Record<number, boolean>>({});
+
+  const activeKeyword = sSearch !== undefined ? sSearch : sKeywordLocal;
 
   const handleQuantityChange = (nProductId: number, nVal: number) => {
     setNQuantities((prev) => ({
@@ -62,8 +79,9 @@ export const ProductSearchContainer: React.FC<IProductSearchProps> = ({
 
   const lstFilteredProducts = lstProducts.filter(
     (objItem) =>
-      objItem.sProductName.toLowerCase().includes(sKeyword.toLowerCase()) ||
-      objItem.sProductCode.includes(sKeyword)
+      !activeKeyword ||
+      objItem.sProductName.toLowerCase().includes(activeKeyword.toLowerCase()) ||
+      objItem.sProductCode.includes(activeKeyword)
   );
 
   return (
@@ -101,8 +119,11 @@ export const ProductSearchContainer: React.FC<IProductSearchProps> = ({
       <TextField
         fullWidth
         placeholder="ค้นหาด้วยรหัสสินค้า หรือชื่อสินค้า (เช่น โค้ก, ไข่ไก่, 59215)..."
-        value={sKeyword}
-        onChange={(e) => setSKeyword(e.target.value)}
+        value={sSearch !== undefined ? sSearch : sKeywordLocal}
+        onChange={(e) => {
+          setSKeywordLocal(e.target.value);
+          onSearchChange?.(e.target.value);
+        }}
         size="medium"
         slotProps={{
           input: {
@@ -157,7 +178,7 @@ export const ProductSearchContainer: React.FC<IProductSearchProps> = ({
                 <TableRow>
                   <TableCell colSpan={4} align="center" sx={{ py: 6, color: '#94a3b8' }}>
                     <Inventory2Icon sx={{ fontSize: 44, mb: 1, display: 'block', mx: 'auto' }} />
-                    ไม่พบข้อมูลสินค้าที่ค้นหา &ldquo;{sKeyword}&rdquo;
+                    ไม่พบข้อมูลสินค้าที่ค้นหา &ldquo;{activeKeyword}&rdquo;
                   </TableCell>
                 </TableRow>
               ) : (
@@ -195,20 +216,6 @@ export const ProductSearchContainer: React.FC<IProductSearchProps> = ({
                         <Typography variant="body2" sx={{ fontWeight: 600, color: '#1e293b', fontSize: '0.94rem' }}>
                           {objProduct.sProductName}
                         </Typography>
-                        {objProduct.sCategory && (
-                          <Chip
-                            label={objProduct.sCategory}
-                            size="small"
-                            sx={{
-                              fontSize: '0.7rem',
-                              height: 20,
-                              mt: 0.5,
-                              bgcolor: '#f8fafc',
-                              color: '#64748b',
-                              border: '1px solid #e2e8f0',
-                            }}
-                          />
-                        )}
                       </TableCell>
 
                       {/* 3. หน่วย */}
@@ -307,7 +314,7 @@ export const ProductSearchContainer: React.FC<IProductSearchProps> = ({
           <Card sx={{ textAlign: 'center', py: 5, borderRadius: 3, border: '1px dashed #cbd5e1' }}>
             <Inventory2Icon sx={{ fontSize: 44, color: '#94a3b8', mb: 1 }} />
             <Typography variant="body1" color="text.secondary">
-              ไม่พบข้อมูลสินค้าที่ค้นหา &ldquo;{sKeyword}&rdquo;
+              ไม่พบข้อมูลสินค้าที่ค้นหา &ldquo;{activeKeyword}&rdquo;
             </Typography>
           </Card>
         ) : (
@@ -351,19 +358,6 @@ export const ProductSearchContainer: React.FC<IProductSearchProps> = ({
                         borderRadius: 1.2,
                       }}
                     />
-                    {objProduct.sCategory && (
-                      <Chip
-                        label={objProduct.sCategory}
-                        size="small"
-                        sx={{
-                          fontSize: '0.7rem',
-                          height: 22,
-                          bgcolor: '#f8fafc',
-                          color: '#64748b',
-                          border: '1px solid #e2e8f0',
-                        }}
-                      />
-                    )}
                   </Box>
 
                   <Typography
@@ -454,6 +448,17 @@ export const ProductSearchContainer: React.FC<IProductSearchProps> = ({
             );
           })
         )}
+      </Box>
+
+      {/* แถบเปลี่ยนเลขหน้า (CustomPagination) */}
+      <Box sx={{ mt: 3, borderRadius: 3, border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+        <CustomPagination
+          nPage={nPage}
+          nRowsPerPage={nRowsPerPage}
+          nTotal={nTotalProducts || lstProducts.length}
+          onPageChange={(newPage) => onPageChange?.(newPage)}
+          onRowsPerPageChange={(newSize) => onRowsPerPageChange?.(newSize)}
+        />
       </Box>
     </Box>
   );

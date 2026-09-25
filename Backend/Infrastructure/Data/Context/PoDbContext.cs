@@ -317,10 +317,6 @@ public partial class PoDbContext : DbContext
             entity.Property(e => e.SUnit)
                 .HasMaxLength(50)
                 .HasColumnName("sUnit");
-
-            entity.Property(e => e.SCategory)
-                .HasMaxLength(100)
-                .HasColumnName("sCategory");
         });
 
         OnModelCreatingPartial(modelBuilder);

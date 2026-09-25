@@ -52,8 +52,11 @@ export const exportPurchaseOrderToExcel = async (objPo: IPurchaseOrder) => {
       const row = worksheet.addRow([]);
       row.height = 20;
 
+      const isCustom = objItem.isCustomItem || !objItem.nProductId || objItem.sProductCode === 'OFF-CATALOG';
+      const sDisplayCode = isCustom ? '' : (objItem.sProductCode || '');
+
       row.getCell(1).value = nIndex + 1;                                // ลำดับ
-      row.getCell(2).value = objItem.sProductCode || '';                // รหัส
+      row.getCell(2).value = sDisplayCode;                              // รหัส (รายการพิเศษไม่ต้องใส่รหัส)
       row.getCell(3).value = objItem.sProductName || '';                // รายการ
       row.getCell(4).value = objItem.nQuantity || 0;                    // จำนวน
       row.getCell(5).value = objItem.sUnit || '';                       // หน่วยนับ

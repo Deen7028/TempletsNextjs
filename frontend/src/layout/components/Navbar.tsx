@@ -710,7 +710,7 @@ export const Navbar = () => {
             <>
               <Divider sx={{ my: 1.5 }} />
               <Typography variant="caption" sx={{ px: 2, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                {objUser?.sRole === 'Admin' ? 'เมนูผู้ดูแลระบบ (Admin)' : 'เมนูผู้จัดการ (Manager)'}
+                {objUser?.sRole === 'Admin' ? 'เมนูผู้ดูแลระบบ' : 'เมนูผู้จัดการ'}
               </Typography>
 
               <ListItem disablePadding sx={{ mt: 1, mb: 0.8 }}>

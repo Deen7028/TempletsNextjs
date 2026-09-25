@@ -18,7 +18,5 @@ public partial class TmProduct
 
     public DateTime DtCreatedAt { get; set; }
 
-    public string? SCategory { get; set; }
-
     public virtual ICollection<TbPurchaseRequestItem> TbPurchaseRequestItems { get; set; } = new List<TbPurchaseRequestItem>();
 }

@@ -6,4 +6,5 @@ export * from './HomeRedirect';
 export * from './LogoLoader';
 export * from './SkeletonCard';
 export * from './ScenariosSkeleton';
+export * from './CustomPagination';
 

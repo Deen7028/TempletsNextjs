@@ -25,7 +25,10 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  TablePagination,
+  Pagination,
 } from '@mui/material';
+import { CustomPagination, LogoLoader } from '@/shared/components';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import EditIcon from '@mui/icons-material/Edit';
@@ -36,19 +39,20 @@ import { productService } from '../services/productService';
 export const AdminProductManagementContainer: React.FC = () => {
   const [lstProducts, setLstProducts] = useState<IProduct[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [nPage, setNPage] = useState<number>(0);
+  const [nRowsPerPage, setNRowsPerPage] = useState<number>(10);
+  const [nTotalProducts, setNTotalProducts] = useState<number>(0);
 
   // Form เพิ่มสินค้า
   const [objForm, setObjForm] = useState<{
     sProductCode: string;
     sProductName: string;
     sUnit: string;
-    sCategory: string;
     nDefaultSupplierId: number;
   }>({
     sProductCode: '',
     sProductName: '',
     sUnit: '',
-    sCategory: '',
     nDefaultSupplierId: 1,
   });
 
@@ -67,11 +71,12 @@ export const AdminProductManagementContainer: React.FC = () => {
   const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
-  const loadProducts = async () => {
+  const loadProducts = async (page: number = nPage, pageSize: number = nRowsPerPage) => {
     setIsLoading(true);
     try {
-      const data = await productService.getProducts();
-      setLstProducts(data);
+      const res = await productService.getProducts(undefined, page + 1, pageSize);
+      setLstProducts(res.data);
+      setNTotalProducts(res.total);
     } catch (err) {
       console.error(err);
     } finally {
@@ -80,8 +85,8 @@ export const AdminProductManagementContainer: React.FC = () => {
   };
 
   useEffect(() => {
-    loadProducts();
-  }, []);
+    loadProducts(nPage, nRowsPerPage);
+  }, [nPage, nRowsPerPage]);
 
   const handleChange = (objEvent: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = objEvent.target;
@@ -104,7 +109,7 @@ export const AdminProductManagementContainer: React.FC = () => {
         ...objForm,
       });
       setSNotification('เพิ่มข้อมูลสินค้าใหม่สำเร็จเรียบร้อยแล้ว');
-      setObjForm({ sProductCode: '', sProductName: '', sUnit: '', sCategory: '', nDefaultSupplierId: 1 });
+      setObjForm({ sProductCode: '', sProductName: '', sUnit: '', nDefaultSupplierId: 1 });
       loadProducts();
     } catch (objErr: any) {
       setSError(objErr?.message || 'ไม่สามารถบันทึกข้อมูลสินค้าได้');
@@ -146,7 +151,6 @@ export const AdminProductManagementContainer: React.FC = () => {
       await productService.updateProduct(editProduct.nProductId, {
         sProductName: editProduct.sProductName,
         sUnit: editProduct.sUnit,
-        sCategory: editProduct.sCategory || '',
       });
       setSNotification('อัปเดตข้อมูลสินค้าสำเร็จเรียบร้อยแล้ว');
       handleCloseEdit();
@@ -191,7 +195,7 @@ export const AdminProductManagementContainer: React.FC = () => {
         <AddBoxIcon sx={{ color: '#174785', fontSize: 32 }} />
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 700, color: '#174785' }}>
-            จัดการข้อมูลสินค้า (Admin)
+            จัดการข้อมูลสินค้า
           </Typography>
           <Typography variant="body2" color="text.secondary">
             เพิ่มข้อมูลสินค้าใหม่ และแก้ไข/ลบรายการสินค้าในระบบ
@@ -203,7 +207,7 @@ export const AdminProductManagementContainer: React.FC = () => {
       <Card sx={{ borderRadius: 3, border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', mb: 4 }}>
         <CardContent sx={{ p: { xs: 2.5, sm: 3.5 } }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1e293b', mb: 2 }}>
-            เพิ่มสินค้าใหม่เข้าสู่ระบบ (TmProducts)
+            เพิ่มสินค้าใหม่เข้าสู่ระบบ
           </Typography>
 
           {sError && <Alert severity="error" sx={{ mb: 2.5, borderRadius: 2 }}>{sError}</Alert>}
@@ -234,16 +238,6 @@ export const AdminProductManagementContainer: React.FC = () => {
                   label="หน่วยนับ (Unit เช่น ถาด, แพ็ค, ถุง, กล่อง)"
                   name="sUnit"
                   value={objForm.sUnit}
-                  onChange={handleChange}
-                  size="small"
-                />
-              </Box>
-              <Box>
-                <TextField
-                  fullWidth
-                  label="หมวดหมู่ (Category เช่น ของสด / วัตถุดิบ, เครื่องดื่ม)"
-                  name="sCategory"
-                  value={objForm.sCategory}
                   onChange={handleChange}
                   size="small"
                 />
@@ -294,8 +288,8 @@ export const AdminProductManagementContainer: React.FC = () => {
         </Box>
 
         {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-            <CircularProgress />
+          <Box sx={{ py: 4 }}>
+            <LogoLoader sMessage="กำลังโหลดข้อมูลสินค้า..." />
           </Box>
         ) : lstProducts.length === 0 ? (
           <Card sx={{ borderRadius: 3, border: '1px dashed #cbd5e1', boxShadow: 'none', py: 6, textAlign: 'center' }}>
@@ -304,105 +298,169 @@ export const AdminProductManagementContainer: React.FC = () => {
             </Typography>
           </Card>
         ) : (
-          <TableContainer
-            component={Paper}
-            elevation={0}
-            sx={{
-              borderRadius: 3,
-              border: '1px solid #e2e8f0',
-              overflow: 'hidden',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
-            }}
-          >
-            <Table size="small">
-              <TableHead sx={{ bgcolor: '#f8fafc' }}>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 140 }}>รหัสสินค้า</TableCell>
-                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8 }}>ชื่อรายการสินค้า</TableCell>
-                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 180 }}>หมวดหมู่</TableCell>
-                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 100, textAlign: 'center' }}>
-                    หน่วย
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 110, textAlign: 'center' }}>
-                    จัดการ
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {lstProducts.map((p) => (
-                  <TableRow key={p.nProductId} hover>
-                    <TableCell sx={{ py: 1.8 }}>
-                      <Chip
-                        label={p.sProductCode}
-                        size="small"
-                        sx={{
-                          fontWeight: 700,
-                          fontSize: '0.75rem',
-                          bgcolor: '#f1f5f9',
-                          color: '#1e293b',
-                          borderRadius: 1.5,
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ py: 1.8, fontWeight: 600, color: '#1e293b' }}>
-                      {p.sProductName}
-                    </TableCell>
-                    <TableCell sx={{ py: 1.8 }}>
-                      {p.sCategory ? (
-                        <Chip
-                          label={p.sCategory}
-                          size="small"
-                          sx={{
-                            fontSize: '0.72rem',
-                            bgcolor: '#f8fafc',
-                            color: '#475569',
-                            border: '1px solid #e2e8f0',
-                          }}
-                        />
-                      ) : (
-                        <Typography variant="caption" color="text.secondary">-</Typography>
-                      )}
-                    </TableCell>
-                    <TableCell align="center" sx={{ py: 1.8 }}>
-                      <Chip
-                        label={p.sUnit}
-                        size="small"
-                        sx={{
-                          fontWeight: 600,
-                          fontSize: '0.75rem',
-                          bgcolor: '#ecfdf5',
-                          color: '#047857',
-                          borderRadius: 1.5,
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell align="center" sx={{ py: 1.8 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5 }}>
-                        <Tooltip title="แก้ไขข้อมูล">
-                          <IconButton
+          <>
+            {/* PC Desktop View: Table (>= lg) */}
+            <Box sx={{ display: { xs: 'none', lg: 'block' } }}>
+              <TableContainer
+                component={Paper}
+                elevation={0}
+                sx={{
+                  borderRadius: 3,
+                  border: '1px solid #e2e8f0',
+                  overflow: 'hidden',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                }}
+              >
+                <Table size="small">
+                  <TableHead sx={{ bgcolor: '#f8fafc' }}>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 140 }}>รหัสสินค้า</TableCell>
+                      <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8 }}>ชื่อรายการสินค้า</TableCell>
+                      <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 120, textAlign: 'center' }}>
+                        หน่วย
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 110, textAlign: 'center' }}>
+                        จัดการ
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {lstProducts.map((p) => (
+                      <TableRow key={p.nProductId} hover>
+                        <TableCell sx={{ py: 1.8 }}>
+                          <Chip
+                            label={p.sProductCode}
                             size="small"
-                            onClick={() => handleOpenEdit(p)}
-                            sx={{ color: '#2563eb', '&:hover': { bgcolor: '#eff6ff' } }}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="ลบข้อมูล">
-                          <IconButton
+                            sx={{
+                              fontWeight: 700,
+                              fontSize: '0.75rem',
+                              bgcolor: '#f1f5f9',
+                              color: '#1e293b',
+                              borderRadius: 1.5,
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell sx={{ py: 1.8, fontWeight: 600, color: '#1e293b' }}>
+                          {p.sProductName}
+                        </TableCell>
+                        <TableCell align="center" sx={{ py: 1.8 }}>
+                          <Chip
+                            label={p.sUnit}
                             size="small"
-                            onClick={() => handleOpenDelete(p)}
-                            sx={{ color: '#ef4444', '&:hover': { bgcolor: '#fef2f2' } }}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                            sx={{
+                              fontWeight: 600,
+                              fontSize: '0.75rem',
+                              bgcolor: '#ecfdf5',
+                              color: '#047857',
+                              borderRadius: 1.5,
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell align="center" sx={{ py: 1.8 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5 }}>
+                            <Tooltip title="แก้ไขข้อมูล">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleOpenEdit(p)}
+                                sx={{ color: '#2563eb', '&:hover': { bgcolor: '#eff6ff' } }}
+                              >
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="ลบข้อมูล">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleOpenDelete(p)}
+                                sx={{ color: '#ef4444', '&:hover': { bgcolor: '#fef2f2' } }}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+
+            {/* Mobile & Tablet View: Cards (< lg) */}
+            <Box sx={{ display: { xs: 'flex', lg: 'none' }, flexDirection: 'column', gap: 1.5 }}>
+              {lstProducts.map((p) => (
+                <Card
+                  key={p.nProductId}
+                  elevation={0}
+                  sx={{
+                    p: 2,
+                    borderRadius: 3,
+                    border: '1px solid #e2e8f0',
+                    bgcolor: '#ffffff',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                    <Chip
+                      label={p.sProductCode}
+                      size="small"
+                      sx={{
+                        fontWeight: 700,
+                        fontSize: '0.75rem',
+                        bgcolor: '#f1f5f9',
+                        color: '#1e293b',
+                        borderRadius: 1.5,
+                      }}
+                    />
+                    <Chip
+                      label={p.sUnit}
+                      size="small"
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: '0.75rem',
+                        bgcolor: '#ecfdf5',
+                        color: '#047857',
+                        borderRadius: 1.5,
+                      }}
+                    />
+                  </Box>
+
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1e293b', mb: 1.5 }}>
+                    {p.sProductName}
+                  </Typography>
+
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, pt: 1, borderTop: '1px solid #f1f5f9' }}>
+                    <Button
+                      size="small"
+                      startIcon={<EditIcon fontSize="small" />}
+                      onClick={() => handleOpenEdit(p)}
+                      sx={{ color: '#2563eb', bgcolor: '#eff6ff', borderRadius: 1.5, textTransform: 'none', fontWeight: 600 }}
+                    >
+                      แก้ไข
+                    </Button>
+                    <Button
+                      size="small"
+                      startIcon={<DeleteIcon fontSize="small" />}
+                      onClick={() => handleOpenDelete(p)}
+                      sx={{ color: '#ef4444', bgcolor: '#fef2f2', borderRadius: 1.5, textTransform: 'none', fontWeight: 600 }}
+                    >
+                      ลบ
+                    </Button>
+                  </Box>
+                </Card>
+              ))}
+            </Box>
+
+            {/* Custom Pagination */}
+            <Box sx={{ mt: 2, borderRadius: 3, border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+              <CustomPagination
+                nPage={nPage}
+                nRowsPerPage={nRowsPerPage}
+                nTotal={nTotalProducts}
+                onPageChange={(newPage) => setNPage(newPage)}
+                onRowsPerPageChange={(newSize) => setNRowsPerPage(newSize)}
+              />
+            </Box>
+          </>
         )}
       </Box>
 
@@ -431,14 +489,6 @@ export const AdminProductManagementContainer: React.FC = () => {
                   label="หน่วยนับ"
                   name="sUnit"
                   value={editProduct.sUnit}
-                  onChange={handleEditChange}
-                  size="small"
-                />
-                <TextField
-                  fullWidth
-                  label="หมวดหมู่"
-                  name="sCategory"
-                  value={editProduct.sCategory || ''}
                   onChange={handleEditChange}
                   size="small"
                 />

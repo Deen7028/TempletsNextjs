@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { Box, CircularProgress } from '@mui/material';
+import { Box } from '@mui/material';
 import { Navbar } from '@/layout';
 import { useAuth } from '@/modules/auth';
 import { useRouter } from 'next/navigation';
+import { LogoLoader } from '@/shared/components';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const { objUser, isLoading } = useAuth();
@@ -19,7 +20,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   if (isLoading) {
     return (
       <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <CircularProgress />
+        <LogoLoader sMessage="กำลังโหลดข้อมูล..." />
       </Box>
     );
   }

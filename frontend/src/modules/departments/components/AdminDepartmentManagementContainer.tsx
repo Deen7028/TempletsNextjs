@@ -26,6 +26,7 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material';
+import { LogoLoader, CustomPagination } from '@/shared/components';
 import BusinessIcon from '@mui/icons-material/Business';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -36,6 +37,9 @@ import { departmentService } from '../services/departmentService';
 export const AdminDepartmentManagementContainer: React.FC = () => {
   const [lstDepartments, setLstDepartments] = useState<IDepartment[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [nPage, setNPage] = useState<number>(0);
+  const [nRowsPerPage, setNRowsPerPage] = useState<number>(10);
+  const [nTotalDepartments, setNTotalDepartments] = useState<number>(0);
 
   // Form เพิ่มแผนก
   const [objForm, setObjForm] = useState<{
@@ -61,11 +65,12 @@ export const AdminDepartmentManagementContainer: React.FC = () => {
   const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
-  const loadDepartments = async () => {
+  const loadDepartments = async (page: number = nPage, pageSize: number = nRowsPerPage) => {
     setIsLoading(true);
     try {
-      const data = await departmentService.getDepartments();
-      setLstDepartments(data);
+      const res = await departmentService.getDepartments(undefined, page + 1, pageSize);
+      setLstDepartments(res.data);
+      setNTotalDepartments(res.total);
     } catch (err) {
       console.error(err);
     } finally {
@@ -74,8 +79,8 @@ export const AdminDepartmentManagementContainer: React.FC = () => {
   };
 
   useEffect(() => {
-    loadDepartments();
-  }, []);
+    loadDepartments(nPage, nRowsPerPage);
+  }, [nPage, nRowsPerPage]);
 
   const handleChange = (objEvent: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = objEvent.target;
@@ -175,7 +180,7 @@ export const AdminDepartmentManagementContainer: React.FC = () => {
         <BusinessIcon sx={{ color: '#174785', fontSize: 32 }} />
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 700, color: '#174785' }}>
-            จัดการข้อมูลแผนก (Admin)
+            จัดการข้อมูลแผนก
           </Typography>
           <Typography variant="body2" color="text.secondary">
             เพิ่มข้อมูลแผนกใหม่ และแก้ไข/ลบรายการแผนกในระบบ
@@ -187,7 +192,7 @@ export const AdminDepartmentManagementContainer: React.FC = () => {
       <Card sx={{ borderRadius: 3, border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', mb: 4 }}>
         <CardContent sx={{ p: { xs: 2.5, sm: 3.5 } }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1e293b', mb: 2 }}>
-            เพิ่มแผนกใหม่เข้าสู่ระบบ (TmDepartments)
+            เพิ่มแผนกใหม่เข้าสู่ระบบ
           </Typography>
 
           {sError && <Alert severity="error" sx={{ mb: 2.5, borderRadius: 2 }}>{sError}</Alert>}
@@ -257,8 +262,8 @@ export const AdminDepartmentManagementContainer: React.FC = () => {
         </Box>
 
         {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-            <CircularProgress />
+          <Box sx={{ py: 4 }}>
+            <LogoLoader sMessage="กำลังโหลดข้อมูลแผนก..." />
           </Box>
         ) : lstDepartments.length === 0 ? (
           <Card sx={{ borderRadius: 3, border: '1px dashed #cbd5e1', boxShadow: 'none', py: 6, textAlign: 'center' }}>
@@ -267,82 +272,157 @@ export const AdminDepartmentManagementContainer: React.FC = () => {
             </Typography>
           </Card>
         ) : (
-          <TableContainer
-            component={Paper}
-            elevation={0}
-            sx={{
-              borderRadius: 3,
-              border: '1px solid #e2e8f0',
-              overflow: 'hidden',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
-            }}
-          >
-            <Table size="small">
-              <TableHead sx={{ bgcolor: '#f8fafc' }}>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 80, textAlign: 'center' }}>
-                    ลำดับ
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 160 }}>
-                    รหัสแผนก
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8 }}>
-                    ชื่อแผนก
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 110, textAlign: 'center' }}>
-                    จัดการ
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {lstDepartments.map((d, index) => (
-                  <TableRow key={d.nDepartmentId} hover>
-                    <TableCell align="center" sx={{ py: 1.8, color: '#64748b' }}>
-                      {index + 1}
-                    </TableCell>
-                    <TableCell sx={{ py: 1.8 }}>
+          <>
+            {/* PC Desktop View: Table (>= lg) */}
+            <Box sx={{ display: { xs: 'none', lg: 'block' } }}>
+              <TableContainer
+                component={Paper}
+                elevation={0}
+                sx={{
+                  borderRadius: 3,
+                  border: '1px solid #e2e8f0',
+                  overflow: 'hidden',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                }}
+              >
+                <Table size="small">
+                  <TableHead sx={{ bgcolor: '#f8fafc' }}>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 80, textAlign: 'center' }}>
+                        ลำดับ
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 160 }}>
+                        รหัสแผนก
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8 }}>
+                        ชื่อแผนก
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 700, color: '#475569', py: 1.8, width: 110, textAlign: 'center' }}>
+                        จัดการ
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {lstDepartments.map((d, index) => (
+                      <TableRow key={d.nDepartmentId} hover>
+                        <TableCell align="center" sx={{ py: 1.8, color: '#64748b' }}>
+                          {nPage * nRowsPerPage + index + 1}
+                        </TableCell>
+                        <TableCell sx={{ py: 1.8 }}>
+                          <Chip
+                            label={d.sDepartmentCode}
+                            size="small"
+                            sx={{
+                              fontWeight: 700,
+                              fontSize: '0.78rem',
+                              bgcolor: '#f1f5f9',
+                              color: '#1e293b',
+                              borderRadius: 1.5,
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell sx={{ py: 1.8, fontWeight: 600, color: '#1e293b' }}>
+                          {d.sDepartmentName}
+                        </TableCell>
+                        <TableCell align="center" sx={{ py: 1.8 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5 }}>
+                            <Tooltip title="แก้ไขข้อมูล">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleOpenEdit(d)}
+                                sx={{ color: '#2563eb', '&:hover': { bgcolor: '#eff6ff' } }}
+                              >
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="ลบข้อมูล">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleOpenDelete(d)}
+                                sx={{ color: '#ef4444', '&:hover': { bgcolor: '#fef2f2' } }}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+
+            {/* Mobile & Tablet View: Cards (< lg) */}
+            <Box sx={{ display: { xs: 'flex', lg: 'none' }, flexDirection: 'column', gap: 1.5 }}>
+              {lstDepartments.map((d, index) => (
+                <Card
+                  key={d.nDepartmentId}
+                  elevation={0}
+                  sx={{
+                    p: 2,
+                    borderRadius: 3,
+                    border: '1px solid #e2e8f0',
+                    bgcolor: '#ffffff',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>
+                        #{nPage * nRowsPerPage + index + 1}
+                      </Typography>
                       <Chip
                         label={d.sDepartmentCode}
                         size="small"
                         sx={{
                           fontWeight: 700,
-                          fontSize: '0.78rem',
+                          fontSize: '0.75rem',
                           bgcolor: '#f1f5f9',
                           color: '#1e293b',
                           borderRadius: 1.5,
                         }}
                       />
-                    </TableCell>
-                    <TableCell sx={{ py: 1.8, fontWeight: 600, color: '#1e293b' }}>
-                      {d.sDepartmentName}
-                    </TableCell>
-                    <TableCell align="center" sx={{ py: 1.8 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5 }}>
-                        <Tooltip title="แก้ไขข้อมูล">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleOpenEdit(d)}
-                            sx={{ color: '#2563eb', '&:hover': { bgcolor: '#eff6ff' } }}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="ลบข้อมูล">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleOpenDelete(d)}
-                            sx={{ color: '#ef4444', '&:hover': { bgcolor: '#fef2f2' } }}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                    </Box>
+                  </Box>
+
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1e293b', mb: 1.5 }}>
+                    {d.sDepartmentName}
+                  </Typography>
+
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, pt: 1, borderTop: '1px solid #f1f5f9' }}>
+                    <Button
+                      size="small"
+                      startIcon={<EditIcon fontSize="small" />}
+                      onClick={() => handleOpenEdit(d)}
+                      sx={{ color: '#2563eb', bgcolor: '#eff6ff', borderRadius: 1.5, textTransform: 'none', fontWeight: 600 }}
+                    >
+                      แก้ไข
+                    </Button>
+                    <Button
+                      size="small"
+                      startIcon={<DeleteIcon fontSize="small" />}
+                      onClick={() => handleOpenDelete(d)}
+                      sx={{ color: '#ef4444', bgcolor: '#fef2f2', borderRadius: 1.5, textTransform: 'none', fontWeight: 600 }}
+                    >
+                      ลบ
+                    </Button>
+                  </Box>
+                </Card>
+              ))}
+            </Box>
+
+            {/* Custom Pagination */}
+            <Box sx={{ mt: 2, borderRadius: 3, border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+              <CustomPagination
+                nPage={nPage}
+                nRowsPerPage={nRowsPerPage}
+                nTotal={nTotalDepartments}
+                onPageChange={(newPage) => setNPage(newPage)}
+                onRowsPerPageChange={(newSize) => setNRowsPerPage(newSize)}
+              />
+            </Box>
+          </>
         )}
       </Box>
 

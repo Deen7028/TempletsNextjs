@@ -20,6 +20,7 @@ import {
   IconButton,
   Button,
 } from '@mui/material';
+import { LogoLoader, CustomPagination } from '@/shared/components';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
@@ -28,8 +29,8 @@ import { useRouter } from 'next/navigation';
 import { IPurchaseRequest } from '../interfaces/IApproval';
 import { approvalService } from '../services/approvalService';
 import dayjs from 'dayjs';
-
 type TabStatus = 'PENDING_APPROVAL' | 'APPROVED' | 'ALL';
+
 
 export const AdminRequestListContainer: React.FC = () => {
   const objRouter = useRouter();
@@ -37,11 +38,16 @@ export const AdminRequestListContainer: React.FC = () => {
   const [lstAllRequests, setLstAllRequests] = useState<IPurchaseRequest[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const loadRequests = async () => {
+  const [nPage, setNPage] = useState<number>(0);
+  const [nRowsPerPage, setNRowsPerPage] = useState<number>(10);
+  const [nTotalRequests, setNTotalRequests] = useState<number>(0);
+
+  const loadRequests = async (status: string = currentTab, page: number = nPage, pageSize: number = nRowsPerPage) => {
     setIsLoading(true);
     try {
-      const data = await approvalService.getPurchaseRequests('ALL');
-      setLstAllRequests(data);
+      const res = await approvalService.getPurchaseRequests(status, undefined, page + 1, pageSize);
+      setLstAllRequests(res.data);
+      setNTotalRequests(res.total);
     } catch (err) {
       console.error(err);
     } finally {
@@ -50,17 +56,15 @@ export const AdminRequestListContainer: React.FC = () => {
   };
 
   useEffect(() => {
-    loadRequests();
-  }, []);
+    loadRequests(currentTab, nPage, nRowsPerPage);
+  }, [currentTab, nPage, nRowsPerPage]);
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: TabStatus) => {
     setCurrentTab(newValue);
+    setNPage(0);
   };
 
-  const lstFilteredRequests = lstAllRequests.filter((req) => {
-    if (currentTab === 'ALL') return true;
-    return req.sStatus === currentTab;
-  });
+  const lstFilteredRequests = lstAllRequests;
 
   const nPendingCount = lstAllRequests.filter((r) => r.sStatus === 'PENDING_APPROVAL').length;
   const nApprovedCount = lstAllRequests.filter((r) => r.sStatus === 'APPROVED').length;
@@ -267,8 +271,8 @@ export const AdminRequestListContainer: React.FC = () => {
 
       {/* เนื้อหาตารางคำขอ */}
       {isLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-          <CircularProgress />
+        <Box sx={{ py: 6 }}>
+          <LogoLoader sMessage="กำลังโหลดรายการคำขอสั่งซื้อ..." />
         </Box>
       ) : lstFilteredRequests.length === 0 ? (
         <Card sx={{ borderRadius: 3, border: '1px dashed #cbd5e1', boxShadow: 'none', py: 6, textAlign: 'center' }}>
@@ -406,6 +410,16 @@ export const AdminRequestListContainer: React.FC = () => {
                 </CardContent>
               </Card>
             ))}
+          </Box>
+
+          <Box sx={{ mt: 2, borderRadius: 2, border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+            <CustomPagination
+              nPage={nPage}
+              nRowsPerPage={nRowsPerPage}
+              nTotal={nTotalRequests}
+              onPageChange={(newPage) => setNPage(newPage)}
+              onRowsPerPageChange={(newSize) => setNRowsPerPage(newSize)}
+            />
           </Box>
         </>
       )}

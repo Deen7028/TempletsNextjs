@@ -75,7 +75,6 @@ export const CartContainer: React.FC = () => {
       sProductCode: 'CUSTOM',
       sProductName: customItem.sProductName.trim(),
       sUnit: sUnitVal,
-      sCategory: 'รายการพิเศษ / สั่งนอกระบบ',
       sRemarks: customItem.sRemarks.trim() || undefined,
     };
 

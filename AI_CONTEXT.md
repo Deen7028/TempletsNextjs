@@ -27,7 +27,7 @@
    - Lists: `lst` prefix (e.g., `lstTransactions`)
    - Objects: `obj` prefix (e.g., `objMetrics`)
 4. **Interactivity:** Components with event handlers/hooks MUST include `'use client';` at the top.
-5. **Responsiveness:** Always use MUI `Grid` or `Grid2` for responsive layouts.
+5. **Responsiveness:** Always use MUI `Grid` for responsive layouts.
 
 ## Current Project Constraints
 - Backend Communication: Use `apiClient` from `src/shared/services/` for all requests.

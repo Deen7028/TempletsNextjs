@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import { AdminProductManagementContainer } from '@/modules/products';
 
 export const metadata: Metadata = {
-  title: 'จัดการข้อมูลสินค้า (Admin) - ระบบสั่งของ PO/PR',
+  title: 'จัดการข้อมูลสินค้า - ระบบสั่งของ PO/PR',
   description: 'เพิ่มและจัดการข้อมูลสินค้าสำหรับขอสั่งซื้อ',
 };
 

@@ -33,6 +33,7 @@ import {
   Avatar,
   InputAdornment,
 } from '@mui/material';
+import { LogoLoader, CustomPagination } from '@/shared/components';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import EditIcon from '@mui/icons-material/Edit';
 import SearchIcon from '@mui/icons-material/Search';
@@ -58,6 +59,10 @@ export const AdminUserManagementContainer: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [sSearch, setSSearch] = useState<string>('');
 
+  const [nPage, setNPage] = useState<number>(0);
+  const [nRowsPerPage, setNRowsPerPage] = useState<number>(10);
+  const [nTotalEmployees, setNTotalEmployees] = useState<number>(0);
+
   // Dialog แก้ไขบัญชีผู้ใช้
   const [editEmployee, setEditEmployee] = useState<IEmployeeItem | null>(null);
   const [isEditOpen, setIsEditOpen] = useState<boolean>(false);
@@ -68,14 +73,15 @@ export const AdminUserManagementContainer: React.FC = () => {
   const [sNotification, setSNotification] = useState<string>('');
   const [sError, setSError] = useState<string>('');
 
-  const loadData = async () => {
+  const loadData = async (page: number = nPage, pageSize: number = nRowsPerPage, search: string = sSearch) => {
     setIsLoading(true);
     try {
-      const [empData, deptData] = await Promise.all([
-        authService.getEmployees(),
+      const [empRes, deptData] = await Promise.all([
+        authService.getEmployees(search, undefined, page + 1, pageSize),
         authService.getDepartments(),
       ]);
-      setLstEmployees(empData);
+      setLstEmployees(empRes.data);
+      setNTotalEmployees(empRes.total);
       setLstDepartments(deptData);
     } catch (err: any) {
       setSError('ไม่สามารถโหลดข้อมูลผู้ใช้งานได้: ' + (err?.message || ''));
@@ -85,8 +91,8 @@ export const AdminUserManagementContainer: React.FC = () => {
   };
 
   useEffect(() => {
-    loadData();
-  }, []);
+    loadData(nPage, nRowsPerPage, sSearch);
+  }, [nPage, nRowsPerPage, sSearch]);
 
   const handleOpenEdit = (emp: IEmployeeItem) => {
     setEditEmployee({ ...emp });
@@ -264,10 +270,10 @@ export const AdminUserManagementContainer: React.FC = () => {
 
       {/* ตารางแสดงรายชื่อผู้ใช้ */}
       {isLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-          <CircularProgress />
+        <Box sx={{ py: 6 }}>
+          <LogoLoader sMessage="กำลังโหลดข้อมูลผู้ใช้งาน..." />
         </Box>
-      ) : filteredEmployees.length === 0 ? (
+      ) : lstEmployees.length === 0 ? (
         <Card sx={{ borderRadius: 3, border: '1px dashed #cbd5e1', boxShadow: 'none', py: 6, textAlign: 'center' }}>
           <Typography variant="body1" color="text.secondary">
             {sSearch ? 'ไม่พบข้อมูลผู้ใช้งานที่ตรงกับคำค้นหา' : 'ยังไม่มีข้อมูลผู้ใช้งานในระบบ'}
@@ -314,7 +320,7 @@ export const AdminUserManagementContainer: React.FC = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredEmployees.map((emp) => (
+                  {lstEmployees.map((emp) => (
                     <TableRow
                       key={emp.nEmployeeId}
                       hover
@@ -442,7 +448,7 @@ export const AdminUserManagementContainer: React.FC = () => {
 
           {/* Mobile View Cards */}
           <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: 1.5 }}>
-            {filteredEmployees.map((emp) => (
+            {lstEmployees.map((emp) => (
               <Card
                 key={emp.nEmployeeId}
                 elevation={0}
@@ -587,6 +593,16 @@ export const AdminUserManagementContainer: React.FC = () => {
                 </Box>
               </Card>
             ))}
+          </Box>
+
+          <Box sx={{ mt: 2, borderRadius: 2, border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+            <CustomPagination
+              nPage={nPage}
+              nRowsPerPage={nRowsPerPage}
+              nTotal={nTotalEmployees}
+              onPageChange={(newPage) => setNPage(newPage)}
+              onRowsPerPageChange={(newSize) => setNRowsPerPage(newSize)}
+            />
           </Box>
         </>
       )}

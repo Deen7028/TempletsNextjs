@@ -83,14 +83,23 @@ export const authService = {
   },
 
   /**
-   * ดึงรายการผู้ใช้งานทั้งหมด (Admin)
+   * ดึงรายการผู้ใช้งานทั้งหมด (Admin) (รองรับค้นหาและแบ่งหน้า)
    */
-  async getEmployees(): Promise<import('../interfaces/IAuth').IEmployeeItem[]> {
-    const res = await apiClient.get<{ status: string; data: import('../interfaces/IAuth').IEmployeeItem[] }>('/api/employees');
-    if (res?.data && Array.isArray(res.data)) {
-      return res.data;
-    }
-    return [];
+  async getEmployees(sKeyword?: string, sRole?: string, nPage: number = 1, nPageSize: number = 0): Promise<{ data: import('../interfaces/IAuth').IEmployeeItem[]; total: number }> {
+    const params = new URLSearchParams();
+    if (sKeyword) params.append('search', sKeyword);
+    if (sRole && sRole !== 'ALL') params.append('role', sRole);
+    if (nPage) params.append('page', nPage.toString());
+    if (nPageSize) params.append('pageSize', nPageSize.toString());
+
+    const queryString = params.toString();
+    const url = queryString ? `/api/employees?${queryString}` : '/api/employees';
+    const res = await apiClient.get<{ status: string; data: import('../interfaces/IAuth').IEmployeeItem[]; total?: number }>(url);
+    const lstData = res?.data && Array.isArray(res.data) ? res.data : [];
+    return {
+      data: lstData,
+      total: res?.total ?? lstData.length,
+    };
   },
 
   /**

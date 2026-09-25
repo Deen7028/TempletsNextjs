@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import { AdminRequestDetailContainer } from '@/modules/approvals';
 
 export const metadata: Metadata = {
-  title: 'รายละเอียดคำขอ (Admin) - ระบบสั่งของ PO/PR',
+  title: 'รายละเอียดคำขอ - ระบบสั่งของ PO/PR',
   description: 'ตรวจสอบรายละเอียดและอนุมัติคำขอสั่งซื้อ',
 };
 

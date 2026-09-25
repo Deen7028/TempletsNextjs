@@ -174,7 +174,7 @@ export const LoginContainer: React.FC = () => {
               ยินดีต้อนรับเข้าสู่ระบบ
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: { xs: '0.82rem', sm: '0.875rem' } }}>
-              กรอกอีเมลเพื่อเข้าสู่ระบบงานจัดซื้อ
+              กรอกอีเมลเพื่อเข้าสู่ระบบ
             </Typography>
           </Box>
 

@@ -2,9 +2,10 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/modules/auth/context/AuthContext';
-import { Box, CircularProgress, Typography, Button, Paper } from '@mui/material';
+import { Box, Typography, Button, Paper } from '@mui/material';
 import LockPersonIcon from '@mui/icons-material/LockPerson';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { LogoLoader } from '@/shared/components';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { objUser, isLoading } = useAuth();
@@ -22,13 +23,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           alignItems: 'center',
           justifyContent: 'center',
           minHeight: '60vh',
-          gap: 2,
         }}
       >
-        <CircularProgress size={44} sx={{ color: '#2563eb' }} />
-        <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 500 }}>
-          กำลังตรวจสอบสิทธิ์การเข้าถึงระบบ Admin...
-        </Typography>
+        <LogoLoader sMessage="กำลังตรวจสอบสิทธิ์การเข้าถึง..." />
       </Box>
     );
   }

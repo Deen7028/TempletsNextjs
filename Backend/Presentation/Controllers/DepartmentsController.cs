@@ -16,11 +16,28 @@ public class DepartmentsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetDepartments()
+    public async Task<IActionResult> GetDepartments([FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
-        var departments = await _context.TmDepartments
-            .Where(d => d.IsActive == true)
-            .OrderBy(d => d.NDepartmentId)
+        var query = _context.TmDepartments
+            .Where(d => d.IsActive == true);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var sKeyword = search.Trim();
+            query = query.Where(d => d.SDepartmentName.Contains(sKeyword) || d.SDepartmentCode.Contains(sKeyword));
+        }
+
+        var total = await query.CountAsync();
+        var deptsQuery = query.OrderBy(d => d.NDepartmentId).AsQueryable();
+
+        if (pageSize > 0)
+        {
+            var nPage = page < 1 ? 1 : page;
+            var skip = (nPage - 1) * pageSize;
+            deptsQuery = deptsQuery.Skip(skip).Take(pageSize);
+        }
+
+        var departments = await deptsQuery
             .Select(d => new
             {
                 nDepartmentId = d.NDepartmentId,
@@ -30,7 +47,7 @@ public class DepartmentsController : ControllerBase
             })
             .ToListAsync();
 
-        return Ok(new { status = "success", data = departments });
+        return Ok(new { status = "success", data = departments, total = total, page = page, pageSize = pageSize });
     }
 
     public class CreateDepartmentDto

@@ -3,7 +3,6 @@ export interface IProduct {
   sProductCode: string;
   sProductName: string;
   sUnit: string;
-  sCategory?: string | null;
   sRemarks?: string | null;
   isActive: boolean;
 }

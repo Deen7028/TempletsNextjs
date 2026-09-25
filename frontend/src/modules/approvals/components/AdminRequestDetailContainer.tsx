@@ -24,6 +24,7 @@ import {
   DialogActions,
   Alert,
 } from '@mui/material';
+import { LogoLoader } from '@/shared/components';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import EditNoteIcon from '@mui/icons-material/EditNote';
@@ -121,7 +122,7 @@ export const AdminRequestDetailContainer: React.FC<IAdminRequestDetailProps> = (
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-        <CircularProgress />
+        <LogoLoader sMessage="กำลังโหลดรายละเอียดคำขอสั่งซื้อ..." />
       </Box>
     );
   }
@@ -152,6 +153,8 @@ export const AdminRequestDetailContainer: React.FC<IAdminRequestDetailProps> = (
       sDepartmentName: objPR.sDepartmentName || objPR.sDepartmentCode || 'F&B ALACART',
       lstItems: (objPR.lstItems || []).map((item, idx) => ({
         nItemSeq: idx + 1,
+        nProductId: item.nProductId,
+        isCustomItem: item.isCustomItem || !item.nProductId || item.sProductCode === 'OFF-CATALOG',
         sProductCode: item.sProductCode || (item.nProductId ? `P${String(item.nProductId).padStart(4, '0')}` : 'OFF-CATALOG'),
         sProductName: item.sSnapshotProductName,
         nQuantity: item.nQuantity,
@@ -183,7 +186,7 @@ export const AdminRequestDetailContainer: React.FC<IAdminRequestDetailProps> = (
             กลับ
           </Button>
           <Typography variant="h5" sx={{ fontWeight: 700, color: '#174785', fontSize: { xs: '1.25rem', sm: '1.45rem' } }}>
-            รายละเอียดคำขอ (Admin)
+            รายละเอียดคำขอ
           </Typography>
         </Box>
 

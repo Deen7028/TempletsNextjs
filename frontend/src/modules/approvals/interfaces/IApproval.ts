@@ -50,6 +50,8 @@ export interface IPurchaseOrderItem {
   nPoItemId?: number;
   nPoId?: number;
   nItemSeq: number;
+  nProductId?: number | null;
+  isCustomItem?: boolean;
   sProductCode: string;
   sProductName: string;
   nQuantity: number;

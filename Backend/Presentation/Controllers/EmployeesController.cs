@@ -15,15 +15,35 @@ public class EmployeesController : ControllerBase
         _context = context;
     }
 
-    /// <summary>
-    /// ดึงรายการผู้ใช้งาน / พนักงานทั้งหมดในระบบสำหรับ Admin
-    /// </summary>
     [HttpGet]
-    public async Task<IActionResult> GetEmployees()
+    public async Task<IActionResult> GetEmployees([FromQuery] string? search, [FromQuery] string? role, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
-        var employees = await _context.TmEmployees
+        var query = _context.TmEmployees
             .Include(e => e.NDepartment)
-            .OrderBy(e => e.NEmployeeId)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var sKeyword = search.Trim();
+            query = query.Where(e => e.SFirstName.Contains(sKeyword) || e.SLastName.Contains(sKeyword) || e.SEmail.Contains(sKeyword));
+        }
+
+        if (!string.IsNullOrWhiteSpace(role) && role != "ALL")
+        {
+            query = query.Where(e => e.SRole == role);
+        }
+
+        var total = await query.CountAsync();
+        var empQuery = query.OrderBy(e => e.NEmployeeId).AsQueryable();
+
+        if (pageSize > 0)
+        {
+            var nPage = page < 1 ? 1 : page;
+            var skip = (nPage - 1) * pageSize;
+            empQuery = empQuery.Skip(skip).Take(pageSize);
+        }
+
+        var employees = await empQuery
             .Select(e => new
             {
                 nEmployeeId = e.NEmployeeId,
@@ -39,7 +59,7 @@ public class EmployeesController : ControllerBase
             })
             .ToListAsync();
 
-        return Ok(new { status = "success", data = employees });
+        return Ok(new { status = "success", data = employees, total = total, page = page, pageSize = pageSize });
     }
 
     public class UpdateEmployeeDto

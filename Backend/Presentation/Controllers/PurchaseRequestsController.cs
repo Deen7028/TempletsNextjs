@@ -126,7 +126,7 @@ public class PurchaseRequestsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetPurchaseRequests([FromQuery] string? status)
+    public async Task<IActionResult> GetPurchaseRequests([FromQuery] string? status, [FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         var query = _context.TbPurchaseRequests
             .Include(r => r.NDepartment)
@@ -140,8 +140,26 @@ public class PurchaseRequestsController : ControllerBase
             query = query.Where(r => r.SStatus == status);
         }
 
-        var list = await query
-            .OrderByDescending(r => r.DtCreatedAt)
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var sKeyword = search.Trim();
+            query = query.Where(r => r.SRequestNo.Contains(sKeyword) ||
+                                     r.NDepartment.SDepartmentName.Contains(sKeyword) ||
+                                     r.NRequestedByEmployee.SFirstName.Contains(sKeyword) ||
+                                     r.NRequestedByEmployee.SLastName.Contains(sKeyword));
+        }
+
+        var total = await query.CountAsync();
+        var prQuery = query.OrderByDescending(r => r.DtCreatedAt).AsQueryable();
+
+        if (pageSize > 0)
+        {
+            var nPage = page < 1 ? 1 : page;
+            var skip = (nPage - 1) * pageSize;
+            prQuery = prQuery.Skip(skip).Take(pageSize);
+        }
+
+        var list = await prQuery
             .Select(r => new
             {
                 nRequestId = r.NRequestId,
@@ -159,7 +177,7 @@ public class PurchaseRequestsController : ControllerBase
             })
             .ToListAsync();
 
-        return Ok(new { status = "success", data = list });
+        return Ok(new { status = "success", data = list, total = total, page = page, pageSize = pageSize });
     }
 
     [HttpGet("{id}")]

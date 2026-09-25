@@ -2,7 +2,8 @@ import React from 'react';
 import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { AdminApprovalResultContainer } from '@/modules/approvals';
-import { Box, CircularProgress } from '@mui/material';
+import { Box } from '@mui/material';
+import { LogoLoader } from '@/shared/components';
 
 export const metadata: Metadata = {
   title: 'แจ้งผลการตรวจสอบ - ระบบสั่งของ PO/PR',
@@ -17,7 +18,7 @@ export default async function AdminApprovalResultPage({ params }: { params: Prom
     <Suspense
       fallback={
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-          <CircularProgress />
+          <LogoLoader sMessage="กำลังโหลด..." />
         </Box>
       }
     >

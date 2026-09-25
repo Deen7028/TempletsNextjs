@@ -16,7 +16,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetProducts([FromQuery] string? search)
+    public async Task<IActionResult> GetProducts([FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         var query = _context.TmProducts
             .Where(p => p.IsActive == true);
@@ -27,20 +27,28 @@ public class ProductsController : ControllerBase
             query = query.Where(p => p.SProductName.Contains(sKeyword) || p.SProductCode.Contains(sKeyword));
         }
 
-        var products = await query
-            .OrderBy(p => p.NProductId)
+        var total = await query.CountAsync();
+        var productsQuery = query.OrderBy(p => p.NProductId).AsQueryable();
+
+        if (pageSize > 0)
+        {
+            var nPage = page < 1 ? 1 : page;
+            var skip = (nPage - 1) * pageSize;
+            productsQuery = productsQuery.Skip(skip).Take(pageSize);
+        }
+
+        var products = await productsQuery
             .Select(p => new
             {
                 nProductId = p.NProductId,
                 sProductCode = p.SProductCode,
                 sProductName = p.SProductName,
                 sUnit = p.SUnit,
-                sCategory = p.SCategory,
                 isActive = p.IsActive
             })
             .ToListAsync();
 
-        return Ok(new { status = "success", data = products });
+        return Ok(new { status = "success", data = products, total = total, page = page, pageSize = pageSize });
     }
 
     public class CreateProductDto
@@ -48,7 +56,6 @@ public class ProductsController : ControllerBase
         public string SProductCode { get; set; } = string.Empty;
         public string SProductName { get; set; } = string.Empty;
         public string SUnit { get; set; } = string.Empty;
-        public string? SCategory { get; set; }
     }
 
     [HttpPost]
@@ -70,7 +77,6 @@ public class ProductsController : ControllerBase
             SProductCode = dto.SProductCode.Trim(),
             SProductName = dto.SProductName.Trim(),
             SUnit = dto.SUnit.Trim(),
-            SCategory = dto.SCategory?.Trim(),
             IsActive = true,
             DtCreatedAt = DateTime.UtcNow
         };
@@ -86,7 +92,6 @@ public class ProductsController : ControllerBase
         public int NProductId { get; set; }
         public string SProductName { get; set; } = string.Empty;
         public string SUnit { get; set; } = string.Empty;
-        public string? SCategory { get; set; }
     }
 
     [HttpPost("update")]
@@ -105,7 +110,6 @@ public class ProductsController : ControllerBase
 
         product.SProductName = dto.SProductName.Trim();
         product.SUnit = dto.SUnit.Trim();
-        product.SCategory = dto.SCategory?.Trim();
 
         await _context.SaveChangesAsync();
 
