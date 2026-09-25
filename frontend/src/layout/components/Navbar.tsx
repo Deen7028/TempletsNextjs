@@ -253,11 +253,11 @@ export const Navbar = () => {
                   endIcon={<KeyboardArrowDownIcon sx={{ fontSize: 18 }} />}
                   sx={{
                     color: '#ffffff',
-                    fontWeight: sPathname.startsWith('/admin') ? 700 : 500,
+                    fontWeight: ['/requests', '/products', '/departments', '/users'].some(path => sPathname.startsWith(path)) ? 700 : 500,
                     px: 2,
                     py: 0.8,
                     borderRadius: 2,
-                    bgcolor: sPathname.startsWith('/admin') ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                    bgcolor: ['/requests', '/products', '/departments', '/users'].some(path => sPathname.startsWith(path)) ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
                     '&:hover': {
                       bgcolor: 'rgba(255, 255, 255, 0.15)',
                     },
@@ -290,7 +290,7 @@ export const Navbar = () => {
                 >
                   <MenuItem
                     component={Link}
-                    href="/admin/requests"
+                    href="/requests"
                     onClick={handleCloseAdminMenu}
                     sx={{
                       py: 1.2,
@@ -301,13 +301,13 @@ export const Navbar = () => {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      bgcolor: sPathname === '/admin/requests' ? '#eff6ff' : 'transparent',
-                      color: sPathname === '/admin/requests' ? '#2563eb' : '#1e293b',
+                      bgcolor: sPathname.startsWith('/requests') ? '#eff6ff' : 'transparent',
+                      color: sPathname.startsWith('/requests') ? '#2563eb' : '#1e293b',
                       '&:hover': { bgcolor: '#f8fafc' },
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <PlaylistAddCheckIcon sx={{ fontSize: 20, color: sPathname === '/admin/requests' ? '#2563eb' : '#64748b' }} />
+                      <PlaylistAddCheckIcon sx={{ fontSize: 20, color: sPathname.startsWith('/requests') ? '#2563eb' : '#64748b' }} />
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
                         ตรวจสอบคำขอ (PR)
                       </Typography>
@@ -324,7 +324,7 @@ export const Navbar = () => {
 
                   <MenuItem
                     component={Link}
-                    href="/admin/products"
+                    href="/products"
                     onClick={handleCloseAdminMenu}
                     sx={{
                       py: 1.2,
@@ -332,12 +332,12 @@ export const Navbar = () => {
                       gap: 1.5,
                       borderRadius: 2,
                       my: 0.3,
-                      bgcolor: sPathname === '/admin/products' ? '#eff6ff' : 'transparent',
-                      color: sPathname === '/admin/products' ? '#2563eb' : '#1e293b',
+                      bgcolor: sPathname === '/products' ? '#eff6ff' : 'transparent',
+                      color: sPathname === '/products' ? '#2563eb' : '#1e293b',
                       '&:hover': { bgcolor: '#f8fafc' },
                     }}
                   >
-                    <InventoryIcon sx={{ fontSize: 20, color: sPathname === '/admin/products' ? '#2563eb' : '#64748b' }} />
+                    <InventoryIcon sx={{ fontSize: 20, color: sPathname === '/products' ? '#2563eb' : '#64748b' }} />
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       จัดการข้อมูลสินค้า
                     </Typography>
@@ -345,7 +345,7 @@ export const Navbar = () => {
 
                   <MenuItem
                     component={Link}
-                    href="/admin/departments"
+                    href="/departments"
                     onClick={handleCloseAdminMenu}
                     sx={{
                       py: 1.2,
@@ -353,12 +353,12 @@ export const Navbar = () => {
                       gap: 1.5,
                       borderRadius: 2,
                       my: 0.3,
-                      bgcolor: sPathname === '/admin/departments' ? '#eff6ff' : 'transparent',
-                      color: sPathname === '/admin/departments' ? '#2563eb' : '#1e293b',
+                      bgcolor: sPathname === '/departments' ? '#eff6ff' : 'transparent',
+                      color: sPathname === '/departments' ? '#2563eb' : '#1e293b',
                       '&:hover': { bgcolor: '#f8fafc' },
                     }}
                   >
-                    <BusinessIcon sx={{ fontSize: 20, color: sPathname === '/admin/departments' ? '#2563eb' : '#64748b' }} />
+                    <BusinessIcon sx={{ fontSize: 20, color: sPathname === '/departments' ? '#2563eb' : '#64748b' }} />
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       จัดการข้อมูลแผนก
                     </Typography>
@@ -368,7 +368,7 @@ export const Navbar = () => {
                   {objUser?.sRole === 'Admin' && (
                     <MenuItem
                       component={Link}
-                      href="/admin/users"
+                      href="/users"
                       onClick={handleCloseAdminMenu}
                       sx={{
                         py: 1.2,
@@ -376,12 +376,12 @@ export const Navbar = () => {
                         gap: 1.5,
                         borderRadius: 2,
                         my: 0.3,
-                        bgcolor: sPathname === '/admin/users' ? '#eff6ff' : 'transparent',
-                        color: sPathname === '/admin/users' ? '#2563eb' : '#1e293b',
+                        bgcolor: sPathname === '/users' ? '#eff6ff' : 'transparent',
+                        color: sPathname === '/users' ? '#2563eb' : '#1e293b',
                         '&:hover': { bgcolor: '#f8fafc' },
                       }}
                     >
-                      <ManageAccountsIcon sx={{ fontSize: 20, color: sPathname === '/admin/users' ? '#2563eb' : '#64748b' }} />
+                      <ManageAccountsIcon sx={{ fontSize: 20, color: sPathname === '/users' ? '#2563eb' : '#64748b' }} />
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
                         จัดการบัญชีผู้ใช้
                       </Typography>
@@ -762,18 +762,18 @@ export const Navbar = () => {
               <ListItem disablePadding sx={{ mt: 1, mb: 0.8 }}>
                 <ListItemButton
                   component={Link}
-                  href="/admin/requests"
+                  href="/requests"
                   onClick={() => setIsDrawerOpen(false)}
                   sx={{
                     borderRadius: 2,
-                    bgcolor: sPathname === '/admin/requests' ? '#eff6ff' : 'transparent',
-                    color: sPathname === '/admin/requests' ? '#2563eb' : '#334155',
-                    fontWeight: sPathname === '/admin/requests' ? 700 : 500,
+                    bgcolor: sPathname.startsWith('/requests') ? '#eff6ff' : 'transparent',
+                    color: sPathname.startsWith('/requests') ? '#2563eb' : '#334155',
+                    fontWeight: sPathname.startsWith('/requests') ? 700 : 500,
                     '&:hover': { bgcolor: '#f1f5f9' },
                     py: 1.2,
                   }}
                 >
-                  <ListItemIcon sx={{ minWidth: 38, color: sPathname === '/admin/requests' ? '#2563eb' : '#64748b' }}>
+                  <ListItemIcon sx={{ minWidth: 38, color: sPathname.startsWith('/requests') ? '#2563eb' : '#64748b' }}>
                     <Badge badgeContent={nPendingApprovalCount} color="error">
                       <PlaylistAddCheckIcon sx={{ fontSize: 20 }} />
                     </Badge>
@@ -781,7 +781,7 @@ export const Navbar = () => {
                   <ListItemText
                     primary={
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                        <Typography sx={{ fontSize: '0.92rem', fontWeight: sPathname === '/admin/requests' ? 700 : 500 }}>
+                        <Typography sx={{ fontSize: '0.92rem', fontWeight: sPathname.startsWith('/requests') ? 700 : 500 }}>
                           ตรวจสอบคำขอ (PR)
                         </Typography>
                         {nPendingApprovalCount > 0 && (
@@ -801,23 +801,23 @@ export const Navbar = () => {
               <ListItem disablePadding sx={{ mb: 0.8 }}>
                 <ListItemButton
                   component={Link}
-                  href="/admin/products"
+                  href="/products"
                   onClick={() => setIsDrawerOpen(false)}
                   sx={{
                     borderRadius: 2,
-                    bgcolor: sPathname === '/admin/products' ? '#eff6ff' : 'transparent',
-                    color: sPathname === '/admin/products' ? '#2563eb' : '#334155',
-                    fontWeight: sPathname === '/admin/products' ? 700 : 500,
+                    bgcolor: sPathname === '/products' ? '#eff6ff' : 'transparent',
+                    color: sPathname === '/products' ? '#2563eb' : '#334155',
+                    fontWeight: sPathname === '/products' ? 700 : 500,
                     '&:hover': { bgcolor: '#f1f5f9' },
                     py: 1.2,
                   }}
                 >
-                  <ListItemIcon sx={{ minWidth: 38, color: sPathname === '/admin/products' ? '#2563eb' : '#64748b' }}>
+                  <ListItemIcon sx={{ minWidth: 38, color: sPathname === '/products' ? '#2563eb' : '#64748b' }}>
                     <InventoryIcon sx={{ fontSize: 20 }} />
                   </ListItemIcon>
                   <ListItemText
                     primary={
-                      <Typography sx={{ fontSize: '0.92rem', fontWeight: sPathname === '/admin/products' ? 700 : 500 }}>
+                      <Typography sx={{ fontSize: '0.92rem', fontWeight: sPathname === '/products' ? 700 : 500 }}>
                         จัดการข้อมูลสินค้า
                       </Typography>
                     }
@@ -828,23 +828,23 @@ export const Navbar = () => {
               <ListItem disablePadding sx={{ mb: 0.8 }}>
                 <ListItemButton
                   component={Link}
-                  href="/admin/departments"
+                  href="/departments"
                   onClick={() => setIsDrawerOpen(false)}
                   sx={{
                     borderRadius: 2,
-                    bgcolor: sPathname === '/admin/departments' ? '#eff6ff' : 'transparent',
-                    color: sPathname === '/admin/departments' ? '#2563eb' : '#334155',
-                    fontWeight: sPathname === '/admin/departments' ? 700 : 500,
+                    bgcolor: sPathname === '/departments' ? '#eff6ff' : 'transparent',
+                    color: sPathname === '/departments' ? '#2563eb' : '#334155',
+                    fontWeight: sPathname === '/departments' ? 700 : 500,
                     '&:hover': { bgcolor: '#f1f5f9' },
                     py: 1.2,
                   }}
                 >
-                  <ListItemIcon sx={{ minWidth: 38, color: sPathname === '/admin/departments' ? '#2563eb' : '#64748b' }}>
+                  <ListItemIcon sx={{ minWidth: 38, color: sPathname === '/departments' ? '#2563eb' : '#64748b' }}>
                     <BusinessIcon sx={{ fontSize: 20 }} />
                   </ListItemIcon>
                   <ListItemText
                     primary={
-                      <Typography sx={{ fontSize: '0.92rem', fontWeight: sPathname === '/admin/departments' ? 700 : 500 }}>
+                      <Typography sx={{ fontSize: '0.92rem', fontWeight: sPathname === '/departments' ? 700 : 500 }}>
                         จัดการข้อมูลแผนก
                       </Typography>
                     }
@@ -857,23 +857,23 @@ export const Navbar = () => {
                 <ListItem disablePadding sx={{ mb: 0.8 }}>
                   <ListItemButton
                     component={Link}
-                    href="/admin/users"
+                    href="/users"
                     onClick={() => setIsDrawerOpen(false)}
                     sx={{
                       borderRadius: 2,
-                      bgcolor: sPathname === '/admin/users' ? '#eff6ff' : 'transparent',
-                      color: sPathname === '/admin/users' ? '#2563eb' : '#334155',
-                      fontWeight: sPathname === '/admin/users' ? 700 : 500,
+                      bgcolor: sPathname === '/users' ? '#eff6ff' : 'transparent',
+                      color: sPathname === '/users' ? '#2563eb' : '#334155',
+                      fontWeight: sPathname === '/users' ? 700 : 500,
                       '&:hover': { bgcolor: '#f1f5f9' },
                       py: 1.2,
                     }}
                   >
-                    <ListItemIcon sx={{ minWidth: 38, color: sPathname === '/admin/users' ? '#2563eb' : '#64748b' }}>
+                    <ListItemIcon sx={{ minWidth: 38, color: sPathname === '/users' ? '#2563eb' : '#64748b' }}>
                       <ManageAccountsIcon sx={{ fontSize: 20 }} />
                     </ListItemIcon>
                     <ListItemText
                       primary={
-                        <Typography sx={{ fontSize: '0.92rem', fontWeight: sPathname === '/admin/users' ? 700 : 500 }}>
+                        <Typography sx={{ fontSize: '0.92rem', fontWeight: sPathname === '/users' ? 700 : 500 }}>
                           จัดการบัญชีผู้ใช้
                         </Typography>
                       }
