@@ -291,7 +291,7 @@ public class AuthService : IAuthService
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyStr));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var durationMinutes = isRememberMe ? 43200 : int.Parse(jwtSettings["DurationInMinutes"] ?? "10080");
+        var durationMinutes = int.Parse(jwtSettings["DurationInMinutes"] ?? "4320");
 
         var sDisplayName = $"{user.SFirstName} {user.SLastName}".Trim();
 

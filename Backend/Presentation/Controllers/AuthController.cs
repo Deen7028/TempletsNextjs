@@ -24,7 +24,7 @@ public class AuthController : ControllerBase
             return BadRequest(response);
         }
 
-        // Set HttpOnly cookie for token (Security best practice)
+        // Set HttpOnly cookie for token (Expires in 3 days)
         if (!string.IsNullOrEmpty(response.Token))
         {
             Response.Cookies.Append("token", response.Token, new CookieOptions
@@ -32,7 +32,7 @@ public class AuthController : ControllerBase
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.Lax,
-                Expires = DateTimeOffset.UtcNow.AddDays(7)
+                Expires = DateTimeOffset.UtcNow.AddDays(3)
             });
         }
 
@@ -50,13 +50,12 @@ public class AuthController : ControllerBase
 
         if (!string.IsNullOrEmpty(response.Token))
         {
-            var expiryDays = dto.IsRememberMe == true ? 30 : 7;
             Response.Cookies.Append("token", response.Token, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.Lax,
-                Expires = DateTimeOffset.UtcNow.AddDays(expiryDays)
+                Expires = DateTimeOffset.UtcNow.AddDays(3)
             });
         }
 
@@ -66,7 +65,12 @@ public class AuthController : ControllerBase
     [HttpPost("logout")]
     public IActionResult Logout()
     {
-        Response.Cookies.Delete("token");
+        Response.Cookies.Delete("token", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Lax
+        });
         return Ok(new { status = "success", message = "ออกจากระบบเรียบร้อยแล้ว" });
     }
 

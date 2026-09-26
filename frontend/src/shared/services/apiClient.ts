@@ -41,8 +41,8 @@ const apiCall = async <T = IApiResponse>(endpoint: string, options: RequestInit 
         if (!response.ok) {
             console.warn('ผลตอบรับข้อผิดพลาดจาก API:', responseText || `(ไม่มีเนื้อหา, รหัสสถานะ: ${response.status})`);
             
-            // ตรวจสอบสิทธิ์การเข้าถึง หากหมดอายุหรือไม่มีสิทธิ์ ให้เคลียร์ข้อมูลผู้ใช้และพาไปหน้า Login
-            if (response.status === 401 || response.status === 403) {
+            // ตรวจสอบสิทธิ์การเข้าถึง หาก Token หมดอายุ (401 Unauthorized) ให้เคลียร์ข้อมูลผู้ใช้และพาไปหน้า Login
+            if (response.status === 401) {
                 if (typeof window !== 'undefined') {
                     localStorage.removeItem('user');
                     if (!window.location.pathname.includes('/login')) {
