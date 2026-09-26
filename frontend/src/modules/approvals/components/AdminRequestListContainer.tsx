@@ -360,7 +360,7 @@ export const AdminRequestListContainer: React.FC = () => {
                     <TableRow
                       key={req.nRequestId}
                       hover
-                      onClick={() => objRouter.push(`/admin/requests/${req.nRequestId}`)}
+                      onClick={() => objRouter.push(`/requests/${req.nRequestId}`)}
                       sx={{
                         cursor: 'pointer',
                         '&:last-child td, &:last-child th': { border: 0 },
@@ -409,7 +409,7 @@ export const AdminRequestListContainer: React.FC = () => {
               <Card
                 key={req.nRequestId}
                 component={Link}
-                href={`/admin/requests/${req.nRequestId}`}
+                href={`/requests/${req.nRequestId}`}
                 sx={{
                   borderRadius: 2.5,
                   border: '1px solid #e2e8f0',

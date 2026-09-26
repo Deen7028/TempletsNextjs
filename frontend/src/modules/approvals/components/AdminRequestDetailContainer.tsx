@@ -77,7 +77,7 @@ export const AdminRequestDetailContainer: React.FC<IAdminRequestDetailProps> = (
   const handleConfirmAction = async () => {
     if (!actionType || !objPR) return;
 
-    if (actionType !== 'APPROVE' && !sRemarks.trim()) {
+    if (actionType === 'REVISION' && !sRemarks.trim()) {
       setSError('กรุณาระบุเหตุผลหรือข้อความแจ้งกลับ');
       return;
     }
@@ -94,12 +94,25 @@ export const AdminRequestDetailContainer: React.FC<IAdminRequestDetailProps> = (
 
       handleCloseActionModal();
 
-      if (actionType === 'APPROVE') {
-        const poNumber = res?.data?.sPoNumber || 'PO-' + dayjs().format('YYYYMMDD') + '-001';
-        objRouter.push(`/admin/requests/${objPR.nRequestId || nRequestId}/result?poNumber=${encodeURIComponent(poNumber)}`);
-      } else {
-        const updated = await approvalService.getPurchaseRequestById(nRequestId);
+      const updated = await approvalService.getPurchaseRequestById(nRequestId);
+      if (updated) {
         setObjPR(updated);
+      } else {
+        setObjPR((prev) =>
+          prev
+            ? {
+                ...prev,
+                sStatus:
+                  actionType === 'APPROVE'
+                    ? 'APPROVED'
+                    : actionType === 'REVISION'
+                    ? 'REVISION'
+                    : 'REJECTED',
+                sAdminRemarks: sRemarks.trim(),
+                sGeneratedPoNumber: res?.data?.sPoNumber || prev.sGeneratedPoNumber,
+              }
+            : null
+        );
       }
     } catch (err: any) {
       setSError(err?.message || 'เกิดข้อผิดพลาดในการประมวลผลคำขอ');
@@ -133,7 +146,7 @@ export const AdminRequestDetailContainer: React.FC<IAdminRequestDetailProps> = (
         <Typography variant="h6" color="error">
           ไม่พบข้อมูลคำขอสั่งซื้อ
         </Typography>
-        <Button component={Link} href="/admin/requests" sx={{ mt: 2 }}>
+        <Button component={Link} href="/requests" sx={{ mt: 2 }}>
           กลับหน้ารายการ
         </Button>
       </Box>
@@ -173,7 +186,7 @@ export const AdminRequestDetailContainer: React.FC<IAdminRequestDetailProps> = (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Button
             component={Link}  
-            href="/admin/requests"
+            href="/requests"
             startIcon={<ArrowBackIcon />}
             sx={{
               color: '#475569',
@@ -586,7 +599,16 @@ export const AdminRequestDetailContainer: React.FC<IAdminRequestDetailProps> = (
           </Button>
         </Box>
       ) : (
-        <Alert severity="info" sx={{ borderRadius: 2.5 }}>
+        <Alert
+          severity={
+            objPR.sStatus === 'APPROVED'
+              ? 'success'
+              : objPR.sStatus === 'REVISION'
+              ? 'warning'
+              : 'error'
+          }
+          sx={{ borderRadius: 2.5 }}
+        >
           คำขอนี้ได้รับการประมวลผลแล้ว (สถานะ:{' '}
           {objPR.sStatus === 'APPROVED' ? 'อนุมัติแล้ว' : objPR.sStatus === 'REVISION' ? 'ส่งกลับแก้ไข' : 'ไม่อนุมัติ'})
           {objPR.sAdminRemarks && ` - หมายเหตุ: ${objPR.sAdminRemarks}`}

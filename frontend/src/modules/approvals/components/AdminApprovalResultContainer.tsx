@@ -77,7 +77,7 @@ export const AdminApprovalResultContainer: React.FC<IAdminApprovalResultProps> =
 
           <Button
             component={Link}
-            href={`/admin/requests/${nRequestId}`}
+            href={`/requests/${nRequestId}`}
             variant="outlined"
             fullWidth
             size="large"
@@ -101,7 +101,7 @@ export const AdminApprovalResultContainer: React.FC<IAdminApprovalResultProps> =
 
           <Button
             component={Link}
-            href="/admin/requests"
+            href="/requests"
             variant="contained"
             fullWidth
             size="large"

@@ -210,7 +210,7 @@ export const AdminUserManagementContainer: React.FC = () => {
           <Button
             variant="contained"
             startIcon={<ArrowBackIcon />}
-            onClick={() => objRouter.push('/admin/requests')}
+            onClick={() => objRouter.push('/requests')}
             sx={{
               borderRadius: 2,
               px: 3,
