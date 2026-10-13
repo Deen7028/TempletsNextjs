@@ -1,0 +1,6 @@
+{
+  "confirmDelete": "Are you sure you want to delete?",
+  "confirmDeleteDesc": "Deleted data cannot be recovered.",
+  "saveSuccess": "Data saved successfully.",
+  "saveFailed": "Failed to save data."
+}

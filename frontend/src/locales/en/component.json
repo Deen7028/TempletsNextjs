@@ -1,0 +1,11 @@
+{
+  "table": {
+    "rowsPerPage": "Rows per page",
+    "total": "Total {{total}} items",
+    "page": "Page {{page}} of {{totalPages}}"
+  },
+  "upload": {
+    "dragDrop": "Drag and drop files here, or click to select",
+    "maxSize": "Maximum file size {{size}}MB"
+  }
+}

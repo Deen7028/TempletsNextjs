@@ -1,5 +1,6 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -15,81 +16,76 @@ import {
   ListItemText,
   Avatar,
   Divider,
-  Chip,
   Menu,
   MenuItem,
   Tooltip,
   Badge,
 } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
-import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
-import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
-import InventoryIcon from '@mui/icons-material/Inventory';
-import BusinessIcon from '@mui/icons-material/Business';
-import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import InventoryIcon from '@mui/icons-material/Inventory';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuth, authService } from '@/modules/auth';
-import { useCart } from '@/modules/purchasing';
-import { approvalService } from '@/modules/approvals/services/approvalService';
 
+import { useAuthStore } from '@/stores/useAuthStore';
+import { onLogoutAction } from '@/modules/auth';
+import { INavMenuItem, APP_NAVIGATION } from '@/shared/config';
 
-export const Navbar = () => {
+export interface INavbarProps {
+  brandTitle?: string;
+  brandSubtitle?: string;
+  brandHref?: string;
+  logoIcon?: React.ReactNode;
+  menuItems?: INavMenuItem[];
+  onLogout?: () => Promise<void> | void;
+}
+
+export const Navbar: React.FC<INavbarProps> = ({
+  brandTitle = APP_NAVIGATION.brandTitle,
+  brandSubtitle = APP_NAVIGATION.brandSubtitle,
+  brandHref = APP_NAVIGATION.brandHref || '/showcase',
+  logoIcon,
+  menuItems = APP_NAVIGATION.menuItems,
+  onLogout,
+}) => {
   const sPathname = usePathname();
   const objRouter = useRouter();
-  const { objUser, logoutUser } = useAuth();
-  const { nTotalItems } = useCart();
 
-  const [nPendingApprovalCount, setNPendingApprovalCount] = useState<number>(0);
+  // Auth state from Zustand store
+  const currentUser = useAuthStore((s) => s.dataUser);
+  const storeLogout = useAuthStore((s) => s.logout);
 
-  const fetchPendingApprovalCount = async () => {
-    if (objUser?.sRole === 'Admin' || objUser?.sRole === 'Manager') {
-      const summary = await approvalService.getSummaryCounts();
-      setNPendingApprovalCount(summary.nPending);
-    } else {
-      setNPendingApprovalCount(0);
-    }
+  const userRole = (currentUser as any)?.sRole || '';
+
+  // Filter items by role
+  const filterByRole = (items: INavMenuItem[]): INavMenuItem[] => {
+    return items.filter((item) => {
+      if (!item.roles || item.roles.length === 0) return true;
+      return item.roles.includes(userRole);
+    });
   };
 
-  useEffect(() => {
-    fetchPendingApprovalCount();
-
-    const handleApiUpdate = () => {
-      fetchPendingApprovalCount();
-    };
-
-    window.addEventListener('api-update', handleApiUpdate);
-    return () => {
-      window.removeEventListener('api-update', handleApiUpdate);
-    };
-  }, [objUser]);
-
-  useEffect(() => {
-    fetchPendingApprovalCount();
-  }, [sPathname]);
+  const visibleMenuItems = filterByRole(menuItems);
 
   // Mobile / Tablet Drawer State
-
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
 
   // Desktop User Menu State
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(anchorEl);
 
-  // Desktop Admin Menu State
-  const [anchorAdminEl, setAnchorAdminEl] = useState<null | HTMLElement>(null);
-  const isAdminMenuOpen = Boolean(anchorAdminEl);
+  // Dropdown Submenu States: mapping { [menuId]: HTMLElement | null }
+  const [dropdownAnchors, setDropdownAnchors] = useState<Record<string, HTMLElement | null>>({});
 
-  const handleOpenAdminMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorAdminEl(event.currentTarget);
+  const handleOpenDropdown = (id: string, event: React.MouseEvent<HTMLElement>) => {
+    setDropdownAnchors((prev) => ({ ...prev, [id]: event.currentTarget }));
   };
 
-  const handleCloseAdminMenu = () => {
-    setAnchorAdminEl(null);
+  const handleCloseDropdown = (id: string) => {
+    setDropdownAnchors((prev) => ({ ...prev, [id]: null }));
   };
 
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -103,14 +99,33 @@ export const Navbar = () => {
   const handleLogout = async () => {
     handleCloseUserMenu();
     setIsDrawerOpen(false);
-    await authService.logout();
-    logoutUser();
+    if (onLogout) {
+      await onLogout();
+    } else {
+      try {
+        await onLogoutAction();
+      } catch {
+        // ignore
+      }
+      storeLogout();
+    }
     objRouter.push('/login');
   };
 
   const getInitials = () => {
-    if (!objUser?.sFirstName) return 'U';
-    return objUser.sFirstName[0].toUpperCase();
+    const firstName = (currentUser as any)?.sFirstName || (currentUser as any)?.sName || '';
+    if (!firstName) return 'U';
+    return String(firstName)[0].toUpperCase();
+  };
+
+  const getUserFullName = () => {
+    const first = (currentUser as any)?.sFirstName || (currentUser as any)?.sName || '';
+    const last = (currentUser as any)?.sLastName || '';
+    return `${first} ${last}`.trim() || 'User';
+  };
+
+  const getUserEmail = () => {
+    return (currentUser as any)?.sEmail || (currentUser as any)?.sUsername || '';
   };
 
   return (
@@ -118,13 +133,12 @@ export const Navbar = () => {
       position="sticky"
       elevation={0}
       sx={{
-        bgcolor: '#174785', // สีน้ำเงินหลักของระบบ
+        bgcolor: (theme) => theme.palette.secondary.main,
         color: '#ffffff',
         borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
         width: '100%',
       }}
     >
-      {/* Toolbar ชิดซ้ายและชิดขวาแบบเต็มหน้าจอ (px 2-3) disableGutters */}
       <Toolbar
         disableGutters
         sx={{
@@ -133,14 +147,14 @@ export const Navbar = () => {
           width: '100%',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between', // ชิดซ้ายและชิดขวา
+          justifyContent: 'space-between',
         }}
       >
-        {/* ฝั่งซ้าย: โลโก้ และ เมนูสั่งซื้อสินค้า (PR) */}
+        {/* Brand / Logo */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2.5 } }}>
           <Box
             component={Link}
-            href="/procurement"
+            href={brandHref}
             sx={{
               display: 'flex',
               alignItems: 'center',
@@ -159,7 +173,7 @@ export const Navbar = () => {
                 justifyContent: 'center',
               }}
             >
-              <ShoppingCartIcon sx={{ fontSize: { xs: 22, sm: 26 }, color: '#ffffff' }} />
+              {logoIcon || <InventoryIcon sx={{ fontSize: { xs: 22, sm: 26 }, color: '#ffffff' }} />}
             </Box>
             <Box>
               <Typography
@@ -171,93 +185,127 @@ export const Navbar = () => {
                   fontSize: { xs: '0.95rem', sm: '1.05rem' },
                 }}
               >
-                ระบบสั่งของ (PO/PR)
+                {brandTitle}
               </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  color: 'rgba(255, 255, 255, 0.82)',
-                  display: 'block',
-                  fontSize: '0.72rem',
-                  lineHeight: 1,
-                  mt: 0.2,
-                }}
-              >
-                Railay Great View Resort
-              </Typography>
+              {brandSubtitle && (
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: 'rgba(255, 255, 255, 0.82)',
+                    display: 'block',
+                    fontSize: '0.72rem',
+                    lineHeight: 1,
+                    mt: 0.2,
+                  }}
+                >
+                  {brandSubtitle}
+                </Typography>
+              )}
             </Box>
           </Box>
-
-
         </Box>
+
+        {/* Desktop Menu Items */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-
-
-          {/* ปุ่มสั่งซื้อสินค้า (PR) สำหรับหน้าจอ PC Desktop */}
           <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', ml: 2, gap: 1 }}>
-            <Button
-              component={Link}
-              href="/procurement"
-              startIcon={<ShoppingCartIcon sx={{ fontSize: 18 }} />}
-              sx={{
-                color: '#ffffff',
-                fontWeight: sPathname === '/procurement' ? 700 : 500,
-                px: 2,
-                py: 0.8,
-                borderRadius: 2,
-                bgcolor: sPathname === '/procurement' ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
-                '&:hover': {
-                  bgcolor: 'rgba(255, 255, 255, 0.15)',
-                },
-                fontSize: '0.92rem',
-                textTransform: 'none',
-              }}
-            >
-              สั่งซื้อสินค้า (PR)
-            </Button>
+            {visibleMenuItems.map((menu) => {
+              const hasSubmenu = menu.children && menu.children.length > 0;
+              const isSubmenuOpen = Boolean(dropdownAnchors[menu.id]);
+              const isActive =
+                sPathname.startsWith(menu.href) ||
+                (hasSubmenu && menu.children?.some((child) => sPathname.startsWith(child.href)));
 
-            <Button
-              component={Link}
-              href="/cart"
-              startIcon={
-                <Badge badgeContent={nTotalItems} color="error">
-                  <ShoppingCartIcon sx={{ fontSize: 18 }} />
-                </Badge>
+              if (hasSubmenu) {
+                const visibleSubmenu = filterByRole(menu.children || []);
+                if (visibleSubmenu.length === 0) return null;
+
+                return (
+                  <React.Fragment key={menu.id}>
+                    <Button
+                      onClick={(e) => handleOpenDropdown(menu.id, e)}
+                      startIcon={menu.icon}
+                      endIcon={<KeyboardArrowDownIcon sx={{ fontSize: 18 }} />}
+                      sx={{
+                        color: '#ffffff',
+                        fontWeight: isActive ? 700 : 500,
+                        px: 2,
+                        py: 0.8,
+                        borderRadius: 2,
+                        bgcolor: isActive ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                        '&:hover': {
+                          bgcolor: 'rgba(255, 255, 255, 0.15)',
+                        },
+                        fontSize: '0.92rem',
+                        textTransform: 'none',
+                      }}
+                    >
+                      {menu.label}
+                    </Button>
+
+                    <Menu
+                      anchorEl={dropdownAnchors[menu.id]}
+                      open={isSubmenuOpen}
+                      onClose={() => handleCloseDropdown(menu.id)}
+                      slotProps={{
+                        paper: {
+                          elevation: 4,
+                          sx: {
+                            borderRadius: 3,
+                            minWidth: 220,
+                            p: 0.8,
+                            mt: 1.5,
+                            boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                            border: '1px solid #e2e8f0',
+                          },
+                        },
+                      }}
+                      transformOrigin={{ horizontal: 'left', vertical: 'top' }}
+                      anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
+                    >
+                      {visibleSubmenu.map((child) => {
+                        const isChildActive = sPathname === child.href;
+                        return (
+                          <MenuItem
+                            key={child.id}
+                            component={Link}
+                            href={child.href}
+                            onClick={() => handleCloseDropdown(menu.id)}
+                            sx={{
+                              py: 1.2,
+                              px: 2,
+                              gap: 1.5,
+                              borderRadius: 2,
+                              my: 0.3,
+                              bgcolor: isChildActive ? '#eff6ff' : 'transparent',
+                              color: isChildActive ? '#2563eb' : '#1e293b',
+                              '&:hover': { bgcolor: '#f8fafc' },
+                            }}
+                          >
+                            {child.icon}
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              {child.label}
+                            </Typography>
+                          </MenuItem>
+                        );
+                      })}
+                    </Menu>
+                  </React.Fragment>
+                );
               }
-              sx={{
-                color: '#ffffff',
-                fontWeight: sPathname === '/cart' ? 700 : 500,
-                px: 2,
-                py: 0.8,
-                borderRadius: 2,
-                bgcolor: sPathname === '/cart' ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
-                '&:hover': {
-                  bgcolor: 'rgba(255, 255, 255, 0.15)',
-                },
-                fontSize: '0.92rem',
-                textTransform: 'none',
-              }}
-            >
-              ตะกร้าสินค้า
-            </Button>
 
-            {(objUser?.sRole === 'Admin' || objUser?.sRole === 'Manager') && (
-              <>
+              return (
                 <Button
-                  onClick={handleOpenAdminMenu}
-                  startIcon={
-                    <Badge badgeContent={nPendingApprovalCount} color="error" max={99}>
-                      <AdminPanelSettingsIcon sx={{ fontSize: 18 }} />
-                    </Badge>
-                  }
-                  endIcon={<KeyboardArrowDownIcon sx={{ fontSize: 18 }} />}
+                  key={menu.id}
+                  component={Link}
+                  href={menu.href}
+                  startIcon={menu.icon}
                   sx={{
                     color: '#ffffff',
-                    fontWeight: ['/requests', '/products', '/departments', '/users'].some(path => sPathname.startsWith(path)) ? 700 : 500,
+                    fontWeight: isActive ? 700 : 500,
                     px: 2,
                     py: 0.8,
                     borderRadius: 2,
-                    bgcolor: ['/requests', '/products', '/departments', '/users'].some(path => sPathname.startsWith(path)) ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                    bgcolor: isActive ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
                     '&:hover': {
                       bgcolor: 'rgba(255, 255, 255, 0.15)',
                     },
@@ -265,156 +313,33 @@ export const Navbar = () => {
                     textTransform: 'none',
                   }}
                 >
-                  {objUser?.sRole === 'Admin' ? 'จัดการคำขอสั่งซื้อ ' : 'จัดการคำขอสั่งซื้อ'}
+                  {menu.label}
                 </Button>
-
-                <Menu
-                  anchorEl={anchorAdminEl}
-                  open={isAdminMenuOpen}
-                  onClose={handleCloseAdminMenu}
-                  slotProps={{
-                    paper: {
-                      elevation: 4,
-                      sx: {
-                        borderRadius: 3,
-                        minWidth: 230,
-                        p: 0.8,
-                        mt: 1.5,
-                        boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-                        border: '1px solid #e2e8f0',
-                      },
-                    },
-                  }}
-                  transformOrigin={{ horizontal: 'left', vertical: 'top' }}
-                  anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
-                >
-                  <MenuItem
-                    component={Link}
-                    href="/requests"
-                    onClick={handleCloseAdminMenu}
-                    sx={{
-                      py: 1.2,
-                      px: 2,
-                      gap: 1.5,
-                      borderRadius: 2,
-                      my: 0.3,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      bgcolor: sPathname.startsWith('/requests') ? '#eff6ff' : 'transparent',
-                      color: sPathname.startsWith('/requests') ? '#2563eb' : '#1e293b',
-                      '&:hover': { bgcolor: '#f8fafc' },
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <PlaylistAddCheckIcon sx={{ fontSize: 20, color: sPathname.startsWith('/requests') ? '#2563eb' : '#64748b' }} />
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        ตรวจสอบคำขอ (PR)
-                      </Typography>
-                    </Box>
-                    {nPendingApprovalCount > 0 && (
-                      <Chip
-                        label={nPendingApprovalCount}
-                        size="small"
-                        color="error"
-                        sx={{ height: 20, fontSize: '0.72rem', fontWeight: 700, px: 0.5 }}
-                      />
-                    )}
-                  </MenuItem>
-
-                  <MenuItem
-                    component={Link}
-                    href="/products"
-                    onClick={handleCloseAdminMenu}
-                    sx={{
-                      py: 1.2,
-                      px: 2,
-                      gap: 1.5,
-                      borderRadius: 2,
-                      my: 0.3,
-                      bgcolor: sPathname === '/products' ? '#eff6ff' : 'transparent',
-                      color: sPathname === '/products' ? '#2563eb' : '#1e293b',
-                      '&:hover': { bgcolor: '#f8fafc' },
-                    }}
-                  >
-                    <InventoryIcon sx={{ fontSize: 20, color: sPathname === '/products' ? '#2563eb' : '#64748b' }} />
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      จัดการข้อมูลสินค้า
-                    </Typography>
-                  </MenuItem>
-
-                  <MenuItem
-                    component={Link}
-                    href="/departments"
-                    onClick={handleCloseAdminMenu}
-                    sx={{
-                      py: 1.2,
-                      px: 2,
-                      gap: 1.5,
-                      borderRadius: 2,
-                      my: 0.3,
-                      bgcolor: sPathname === '/departments' ? '#eff6ff' : 'transparent',
-                      color: sPathname === '/departments' ? '#2563eb' : '#1e293b',
-                      '&:hover': { bgcolor: '#f8fafc' },
-                    }}
-                  >
-                    <BusinessIcon sx={{ fontSize: 20, color: sPathname === '/departments' ? '#2563eb' : '#64748b' }} />
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      จัดการข้อมูลแผนก
-                    </Typography>
-                  </MenuItem>
-
-                  {/* เฉพาะ Admin เท่านั้นที่เห็นเมนูจัดการบัญชีผู้ใช้ */}
-                  {objUser?.sRole === 'Admin' && (
-                    <MenuItem
-                      component={Link}
-                      href="/users"
-                      onClick={handleCloseAdminMenu}
-                      sx={{
-                        py: 1.2,
-                        px: 2,
-                        gap: 1.5,
-                        borderRadius: 2,
-                        my: 0.3,
-                        bgcolor: sPathname === '/users' ? '#eff6ff' : 'transparent',
-                        color: sPathname === '/users' ? '#2563eb' : '#1e293b',
-                        '&:hover': { bgcolor: '#f8fafc' },
-                      }}
-                    >
-                      <ManageAccountsIcon sx={{ fontSize: 20, color: sPathname === '/users' ? '#2563eb' : '#64748b' }} />
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        จัดการบัญชีผู้ใช้
-                      </Typography>
-                    </MenuItem>
-                  )}
-                </Menu>
-              </>
-            )}
+              );
+            })}
           </Box>
 
-          {/* ฝั่งขวา: โปรไฟล์ผู้ใช้สำหรับ Desktop (PC) */}
+          {/* Desktop User Menu */}
           <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
-            {objUser ? (
+            {currentUser ? (
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Tooltip title="บัญชีผู้ใช้งาน">
                   <IconButton
                     onClick={handleOpenUserMenu}
                     sx={{
                       p: 0.5,
-                      transition: 'transform 0.15s ease',
-                      '&:hover': { transform: 'scale(1.05)' },
+                      border: '2px solid rgba(255, 255, 255, 0.4)',
+                      '&:hover': { border: '2px solid #ffffff' },
                     }}
                   >
                     <Avatar
                       sx={{
-                        width: 40,
-                        height: 40,
                         bgcolor: '#2563eb',
-                        fontSize: '1.05rem',
+                        color: '#ffffff',
+                        width: 36,
+                        height: 36,
+                        fontSize: '0.95rem',
                         fontWeight: 700,
-                        border: '2px solid rgba(255,255,255,0.85)',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                        cursor: 'pointer',
                       }}
                     >
                       {getInitials()}
@@ -428,97 +353,54 @@ export const Navbar = () => {
                   onClose={handleCloseUserMenu}
                   slotProps={{
                     paper: {
+                      elevation: 4,
                       sx: {
-                        width: 250,
-                        mt: 1.5,
                         borderRadius: 3,
-                        boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
+                        minWidth: 240,
+                        p: 1,
+                        mt: 1.5,
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
                         border: '1px solid #e2e8f0',
-                        p: 0.5,
                       },
                     },
                   }}
                   transformOrigin={{ horizontal: 'right', vertical: 'top' }}
                   anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
                 >
-                  {/* Header การ์ดโปรไฟล์เหมือนในภาพ */}
-                  <Box sx={{ px: 2, pt: 1.8, pb: 1.5 }}>
-                    <Typography
-                      variant="subtitle1"
-                      sx={{ fontWeight: 700, color: '#0f172a', lineHeight: 1.2, fontSize: '1rem' }}
-                    >
-                      {objUser.sFirstName} {objUser.sLastName}
+                  <Box sx={{ px: 2, py: 1.5 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1e293b' }}>
+                      {getUserFullName()}
                     </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ display: 'block', mt: 0.3, fontSize: '0.82rem' }}
-                    >
-                      {objUser.sEmail}
-                    </Typography>
-                    <Chip
-                      size="small"
-                      label={objUser.sRole || 'Employee'}
-                      sx={{
-                        mt: 1.2,
-                        fontWeight: 700,
-                        fontSize: '0.72rem',
-                        height: 22,
-                        bgcolor:
-                          objUser.sRole === 'Admin'
-                            ? '#fef3c7'
-                            : objUser.sRole === 'Manager'
-                            ? '#ede9fe'
-                            : '#e0f2fe',
-                        color:
-                          objUser.sRole === 'Admin'
-                            ? '#b45309'
-                            : objUser.sRole === 'Manager'
-                            ? '#6d28d9'
-                            : '#0284c7',
-                        borderRadius: 1.5,
-                        px: 0.5,
-                      }}
-                    />
+                    {getUserEmail() && (
+                      <Typography variant="caption" sx={{ color: '#64748b', display: 'block' }}>
+                        {getUserEmail()}
+                      </Typography>
+                    )}
+                    {userRole && (
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: '#2563eb',
+                          fontWeight: 600,
+                          mt: 0.5,
+                          display: 'inline-block',
+                          bgcolor: '#eff6ff',
+                          px: 1,
+                          py: 0.2,
+                          borderRadius: 1,
+                        }}
+                      >
+                        {userRole}
+                      </Typography>
+                    )}
                   </Box>
                   <Divider sx={{ my: 0.5 }} />
-
-                  {/* เมนูโปรไฟล์ส่วนตัว */}
-                  <MenuItem
-                    component={Link}
-                    href="/profile"
-                    onClick={handleCloseUserMenu}
-                    sx={{
-                      py: 1.2,
-                      px: 2,
-                      gap: 1.5,
-                      borderRadius: 2,
-                      my: 0.3,
-                      bgcolor: sPathname === '/profile' ? '#f1f5f9' : 'transparent',
-                      '&:hover': { bgcolor: '#f8fafc' },
-                    }}
-                  >
-                    <PersonIcon sx={{ fontSize: 20, color: '#64748b' }} />
-                    <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b' }}>
-                      โปรไฟล์ส่วนตัว
-                    </Typography>
-                  </MenuItem>
-
-                  {/* เมนูออกจากระบบ */}
                   <MenuItem
                     onClick={handleLogout}
-                    sx={{
-                      py: 1.2,
-                      px: 2,
-                      gap: 1.5,
-                      color: '#dc2626',
-                      borderRadius: 2,
-                      my: 0.3,
-                      '&:hover': { bgcolor: '#fef2f2' },
-                    }}
+                    sx={{ py: 1, px: 2, gap: 1.5, borderRadius: 2, color: '#ef4444' }}
                   >
-                    <LogoutIcon sx={{ fontSize: 20, color: '#dc2626' }} />
-                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#dc2626' }}>
+                    <LogoutIcon sx={{ fontSize: 20, color: '#ef4444' }} />
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       ออกจากระบบ
                     </Typography>
                   </MenuItem>
@@ -528,71 +410,39 @@ export const Navbar = () => {
               <Button
                 component={Link}
                 href="/login"
-                variant="outlined"
-                size="small"
+                variant="contained"
                 sx={{
-                  color: '#ffffff',
-                  borderColor: 'rgba(255,255,255,0.6)',
-                  '&:hover': { borderColor: '#ffffff', bgcolor: 'rgba(255,255,255,0.1)' },
+                  bgcolor: '#ffffff',
+                  color: 'secondary.main',
+                  fontWeight: 600,
+                  textTransform: 'none',
                   borderRadius: 2,
+                  px: 2.5,
+                  '&:hover': {
+                    bgcolor: '#f1f5f9',
+                  },
                 }}
               >
                 เข้าสู่ระบบ
               </Button>
             )}
           </Box>
-        </Box>
 
-        {/* ฝั่งขวาสำหรับมือถือ (Phone) และแท็บเล็ต (Tablet): แตะรูปโปรไฟล์เพื่อเปิด Sidebar */}
-        <Box sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center' }}>
-          {objUser ? (
+          {/* Mobile Drawer Trigger */}
+          <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
             <IconButton
+              color="inherit"
+              edge="end"
               onClick={() => setIsDrawerOpen(true)}
-              sx={{
-                p: 0.5,
-                transition: 'transform 0.15s ease',
-                '&:hover': { transform: 'scale(1.05)' },
-              }}
-              aria-label="open user menu"
+              aria-label="open drawer"
             >
-              <Avatar
-                sx={{
-                  width: 36,
-                  height: 36,
-                  bgcolor: '#2563eb',
-                  fontSize: '0.95rem',
-                  fontWeight: 700,
-                  border: '2px solid rgba(255,255,255,0.85)',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-                  cursor: 'pointer',
-                }}
-              >
-                {getInitials()}
-              </Avatar>
+              <MenuIcon />
             </IconButton>
-          ) : (
-            <Button
-              component={Link}
-              href="/login"
-              variant="outlined"
-              size="small"
-              sx={{
-                color: '#ffffff',
-                borderColor: 'rgba(255,255,255,0.6)',
-                '&:hover': { borderColor: '#ffffff', bgcolor: 'rgba(255,255,255,0.1)' },
-                borderRadius: 2,
-                fontSize: '0.8rem',
-                py: 0.5,
-                px: 1.5,
-              }}
-            >
-              เข้าสู่ระบบ
-            </Button>
-          )}
+          </Box>
         </Box>
       </Toolbar>
 
-      {/* Drawer เมนูสำหรับ Tablet & Mobile */}
+      {/* Mobile Drawer */}
       <Drawer
         anchor="right"
         open={isDrawerOpen}
@@ -600,323 +450,111 @@ export const Navbar = () => {
         slotProps={{
           paper: {
             sx: {
-              width: { xs: '80%', sm: 320 },
-              maxWidth: 340,
-              bgcolor: '#ffffff',
+              width: { xs: 280, sm: 320 },
               display: 'flex',
               flexDirection: 'column',
+              justifyContent: 'space-between',
             },
           },
         }}
       >
-        {/* Drawer Header */}
-        <Box
-          sx={{
-            p: 2,
-            bgcolor: '#174785',
-            color: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <ShoppingCartIcon sx={{ fontSize: 22 }} />
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, fontSize: '0.95rem' }}>
-              เมนูระบบ
-            </Typography>
-          </Box>
-          <IconButton
-            size="small"
-            onClick={() => setIsDrawerOpen(false)}
-            sx={{ color: '#ffffff', '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' } }}
+        <Box>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              p: 2,
+              borderBottom: '1px solid #e2e8f0',
+            }}
           >
-            <CloseIcon fontSize="small" />
-          </IconButton>
-        </Box>
-
-        {/* ข้อมูลผู้ใช้งานในการ์ด Drawer */}
-        {objUser && (
-          <Box sx={{ p: 2.5, bgcolor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-              <Avatar
-                sx={{
-                  width: 48,
-                  height: 48,
-                  bgcolor: '#2563eb',
-                  fontSize: '1.25rem',
-                  fontWeight: 700,
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                }}
-              >
-                {getInitials()}
-              </Avatar>
-              <Box sx={{ overflow: 'hidden' }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1e293b' }} noWrap>
-                  {objUser.sFirstName} {objUser.sLastName}
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }} noWrap>
-                  {objUser.sEmail}
-                </Typography>
-              </Box>
-            </Box>
-            <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
-              <Chip
-                size="small"
-                label={objUser.sRole || 'Employee'}
-                sx={{
-                  fontWeight: 700,
-                  fontSize: '0.7rem',
-                  bgcolor:
-                    objUser.sRole === 'Admin'
-                      ? '#fef3c7'
-                      : objUser.sRole === 'Manager'
-                      ? '#ede9fe'
-                      : '#e0f2fe',
-                  color:
-                    objUser.sRole === 'Admin'
-                      ? '#b45309'
-                      : objUser.sRole === 'Manager'
-                      ? '#6d28d9'
-                      : '#0284c7',
-                }}
-              />
-              {objUser.sDepartmentName && (
-                <Chip
-                  size="small"
-                  variant="outlined"
-                  label={objUser.sDepartmentName}
-                  sx={{ fontSize: '0.7rem', borderColor: '#cbd5e1' }}
-                />
-              )}
-            </Box>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e293b' }}>
+              เมนูหลัก
+            </Typography>
+            <IconButton onClick={() => setIsDrawerOpen(false)} size="small">
+              <CloseIcon />
+            </IconButton>
           </Box>
-        )}
 
-        {/* รายการลิงก์เมนู (สำหรับมือถือ/แท็บเล็ต) */}
-        <List sx={{ px: 1.5, py: 2, flex: 1 }}>
-          <ListItem disablePadding sx={{ mb: 0.8 }}>
-            <ListItemButton
-              component={Link}
-              href="/procurement"
-              onClick={() => setIsDrawerOpen(false)}
-              sx={{
-                borderRadius: 2,
-                bgcolor: sPathname === '/procurement' ? '#eff6ff' : 'transparent',
-                color: sPathname === '/procurement' ? '#2563eb' : '#334155',
-                fontWeight: sPathname === '/procurement' ? 700 : 500,
-                '&:hover': { bgcolor: '#f1f5f9' },
-                py: 1.2,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 38, color: sPathname === '/procurement' ? '#2563eb' : '#64748b' }}>
-                <ShoppingCartIcon sx={{ fontSize: 20 }} />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  <Typography sx={{ fontSize: '0.92rem', fontWeight: sPathname === '/procurement' ? 700 : 500 }}>
-                    สั่งซื้อสินค้า (PR)
-                  </Typography>
-                }
-              />
-            </ListItemButton>
-          </ListItem>
+          <List sx={{ px: 1.5, py: 1 }}>
+            {visibleMenuItems.map((menu) => {
+              const hasSubmenu = menu.children && menu.children.length > 0;
+              const visibleSub = filterByRole(menu.children || []);
 
-          <ListItem disablePadding sx={{ mb: 0.8 }}>
-            <ListItemButton
-              component={Link}
-              href="/cart"
-              onClick={() => setIsDrawerOpen(false)}
-              sx={{
-                borderRadius: 2,
-                bgcolor: sPathname === '/cart' ? '#eff6ff' : 'transparent',
-                color: sPathname === '/cart' ? '#2563eb' : '#334155',
-                fontWeight: sPathname === '/cart' ? 700 : 500,
-                '&:hover': { bgcolor: '#f1f5f9' },
-                py: 1.2,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 38, color: sPathname === '/cart' ? '#2563eb' : '#64748b' }}>
-                <Badge badgeContent={nTotalItems} color="error">
-                  <ShoppingCartIcon sx={{ fontSize: 20 }} />
-                </Badge>
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  <Typography sx={{ fontSize: '0.92rem', fontWeight: sPathname === '/cart' ? 700 : 500 }}>
-                    ตะกร้าสินค้า
-                  </Typography>
-                }
-              />
-            </ListItemButton>
-          </ListItem>
+              if (hasSubmenu && visibleSub.length > 0) {
+                return (
+                  <React.Fragment key={menu.id}>
+                    <Divider sx={{ my: 1.5 }} />
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        px: 2,
+                        color: '#94a3b8',
+                        fontWeight: 700,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                      }}
+                    >
+                      {menu.label}
+                    </Typography>
+                    {visibleSub.map((sub) => (
+                      <ListItem key={sub.id} disablePadding sx={{ mt: 0.8, mb: 0.5 }}>
+                        <ListItemButton
+                          component={Link}
+                          href={sub.href}
+                          onClick={() => setIsDrawerOpen(false)}
+                          sx={{
+                            borderRadius: 2,
+                            bgcolor: sPathname === sub.href ? '#eff6ff' : 'transparent',
+                            color: sPathname === sub.href ? '#2563eb' : '#334155',
+                            fontWeight: sPathname === sub.href ? 700 : 500,
+                            '&:hover': { bgcolor: '#f1f5f9' },
+                            py: 1.1,
+                          }}
+                        >
+                          {sub.icon && <ListItemIcon sx={{ minWidth: 36 }}>{sub.icon}</ListItemIcon>}
+                          <ListItemText primary={<Typography sx={{ fontSize: '0.92rem' }}>{sub.label}</Typography>} />
+                        </ListItemButton>
+                      </ListItem>
+                    ))}
+                  </React.Fragment>
+                );
+              }
 
-
-          {(objUser?.sRole === 'Admin' || objUser?.sRole === 'Manager') && (
-            <>
-              <Divider sx={{ my: 1.5 }} />
-              <Typography variant="caption" sx={{ px: 2, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                {objUser?.sRole === 'Admin' ? 'เมนูผู้ดูแลระบบ' : 'เมนูผู้จัดการ'}
-              </Typography>
-
-              <ListItem disablePadding sx={{ mt: 1, mb: 0.8 }}>
-                <ListItemButton
-                  component={Link}
-                  href="/requests"
-                  onClick={() => setIsDrawerOpen(false)}
-                  sx={{
-                    borderRadius: 2,
-                    bgcolor: sPathname.startsWith('/requests') ? '#eff6ff' : 'transparent',
-                    color: sPathname.startsWith('/requests') ? '#2563eb' : '#334155',
-                    fontWeight: sPathname.startsWith('/requests') ? 700 : 500,
-                    '&:hover': { bgcolor: '#f1f5f9' },
-                    py: 1.2,
-                  }}
-                >
-                  <ListItemIcon sx={{ minWidth: 38, color: sPathname.startsWith('/requests') ? '#2563eb' : '#64748b' }}>
-                    <Badge badgeContent={nPendingApprovalCount} color="error">
-                      <PlaylistAddCheckIcon sx={{ fontSize: 20 }} />
-                    </Badge>
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                        <Typography sx={{ fontSize: '0.92rem', fontWeight: sPathname.startsWith('/requests') ? 700 : 500 }}>
-                          ตรวจสอบคำขอ (PR)
-                        </Typography>
-                        {nPendingApprovalCount > 0 && (
-                          <Chip
-                            label={nPendingApprovalCount}
-                            size="small"
-                            color="error"
-                            sx={{ height: 20, fontSize: '0.72rem', fontWeight: 700, px: 0.5 }}
-                          />
-                        )}
-                      </Box>
-                    }
-                  />
-                </ListItemButton>
-              </ListItem>
-
-              <ListItem disablePadding sx={{ mb: 0.8 }}>
-                <ListItemButton
-                  component={Link}
-                  href="/products"
-                  onClick={() => setIsDrawerOpen(false)}
-                  sx={{
-                    borderRadius: 2,
-                    bgcolor: sPathname === '/products' ? '#eff6ff' : 'transparent',
-                    color: sPathname === '/products' ? '#2563eb' : '#334155',
-                    fontWeight: sPathname === '/products' ? 700 : 500,
-                    '&:hover': { bgcolor: '#f1f5f9' },
-                    py: 1.2,
-                  }}
-                >
-                  <ListItemIcon sx={{ minWidth: 38, color: sPathname === '/products' ? '#2563eb' : '#64748b' }}>
-                    <InventoryIcon sx={{ fontSize: 20 }} />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={
-                      <Typography sx={{ fontSize: '0.92rem', fontWeight: sPathname === '/products' ? 700 : 500 }}>
-                        จัดการข้อมูลสินค้า
-                      </Typography>
-                    }
-                  />
-                </ListItemButton>
-              </ListItem>
-
-              <ListItem disablePadding sx={{ mb: 0.8 }}>
-                <ListItemButton
-                  component={Link}
-                  href="/departments"
-                  onClick={() => setIsDrawerOpen(false)}
-                  sx={{
-                    borderRadius: 2,
-                    bgcolor: sPathname === '/departments' ? '#eff6ff' : 'transparent',
-                    color: sPathname === '/departments' ? '#2563eb' : '#334155',
-                    fontWeight: sPathname === '/departments' ? 700 : 500,
-                    '&:hover': { bgcolor: '#f1f5f9' },
-                    py: 1.2,
-                  }}
-                >
-                  <ListItemIcon sx={{ minWidth: 38, color: sPathname === '/departments' ? '#2563eb' : '#64748b' }}>
-                    <BusinessIcon sx={{ fontSize: 20 }} />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={
-                      <Typography sx={{ fontSize: '0.92rem', fontWeight: sPathname === '/departments' ? 700 : 500 }}>
-                        จัดการข้อมูลแผนก
-                      </Typography>
-                    }
-                  />
-                </ListItemButton>
-              </ListItem>
-
-              {/* เฉพาะ Admin เท่านั้นที่เห็นเมนูจัดการบัญชีผู้ใช้ */}
-              {objUser?.sRole === 'Admin' && (
-                <ListItem disablePadding sx={{ mb: 0.8 }}>
+              const isItemActive = sPathname.startsWith(menu.href);
+              return (
+                <ListItem key={menu.id} disablePadding sx={{ mb: 0.8 }}>
                   <ListItemButton
                     component={Link}
-                    href="/users"
+                    href={menu.href}
                     onClick={() => setIsDrawerOpen(false)}
                     sx={{
                       borderRadius: 2,
-                      bgcolor: sPathname === '/users' ? '#eff6ff' : 'transparent',
-                      color: sPathname === '/users' ? '#2563eb' : '#334155',
-                      fontWeight: sPathname === '/users' ? 700 : 500,
+                      bgcolor: isItemActive ? '#eff6ff' : 'transparent',
+                      color: isItemActive ? '#2563eb' : '#334155',
+                      fontWeight: isItemActive ? 700 : 500,
                       '&:hover': { bgcolor: '#f1f5f9' },
                       py: 1.2,
                     }}
                   >
-                    <ListItemIcon sx={{ minWidth: 38, color: sPathname === '/users' ? '#2563eb' : '#64748b' }}>
-                      <ManageAccountsIcon sx={{ fontSize: 20 }} />
-                    </ListItemIcon>
+                    {menu.icon && <ListItemIcon sx={{ minWidth: 36 }}>{menu.icon}</ListItemIcon>}
                     <ListItemText
                       primary={
-                        <Typography sx={{ fontSize: '0.92rem', fontWeight: sPathname === '/users' ? 700 : 500 }}>
-                          จัดการบัญชีผู้ใช้
+                        <Typography sx={{ fontSize: '0.92rem', fontWeight: isItemActive ? 700 : 500 }}>
+                          {menu.label}
                         </Typography>
                       }
                     />
                   </ListItemButton>
                 </ListItem>
-              )}
+              );
+            })}
+          </List>
+        </Box>
 
-              <Divider sx={{ my: 1.5 }} />
-            </>
-          )}
-
-          <ListItem disablePadding sx={{ mb: 0.8 }}>
-            <ListItemButton
-              component={Link}
-              href="/profile"
-              onClick={() => setIsDrawerOpen(false)}
-              sx={{
-                borderRadius: 2,
-                bgcolor: sPathname === '/profile' ? '#eff6ff' : 'transparent',
-                color: sPathname === '/profile' ? '#2563eb' : '#334155',
-                fontWeight: sPathname === '/profile' ? 700 : 500,
-                '&:hover': { bgcolor: '#f1f5f9' },
-                py: 1.2,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 38, color: sPathname === '/profile' ? '#2563eb' : '#64748b' }}>
-                <PersonIcon sx={{ fontSize: 20 }} />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  <Typography sx={{ fontSize: '0.92rem', fontWeight: sPathname === '/profile' ? 700 : 500 }}>
-                    โปรไฟล์ส่วนตัว
-                  </Typography>
-                }
-              />
-            </ListItemButton>
-          </ListItem>
-        </List>
-
-        {/* ปุ่มออกจากระบบ / เข้าสู่ระบบ ด้านล่าง Drawer */}
+        {/* Drawer Bottom Logout Button */}
         <Box sx={{ p: 2, borderTop: '1px solid #e2e8f0' }}>
-          {objUser ? (
+          {currentUser ? (
             <Button
               fullWidth
               variant="outlined"

@@ -1,0 +1,14 @@
+{
+  "title": "Product Management",
+  "subtitle": "Add, delete and edit product items in the system",
+  "searchPlaceholder": "Search by product code or name",
+  "code": "Product Code",
+  "codePlaceholder": "e.g. PRD-001",
+  "name": "Product Name",
+  "namePlaceholder": "e.g. Blue ballpoint pen",
+  "unit": "Unit",
+  "unitPlaceholder": "e.g. pcs, box, pack",
+  "addTitle": "Add New Product",
+  "editTitle": "Edit Product",
+  "defaultUnit": "pcs"
+}

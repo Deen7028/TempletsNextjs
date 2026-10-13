@@ -1,0 +1,17 @@
+{
+  "save": "Save",
+  "cancel": "Cancel",
+  "search": "Search",
+  "clear": "Clear",
+  "delete": "Delete",
+  "edit": "Edit",
+  "view": "View",
+  "add": "Add",
+  "back": "Back",
+  "confirm": "Confirm",
+  "status": "Status",
+  "action": "Action",
+  "noData": "No data found",
+  "loading": "Loading...",
+  "welcome": "Welcome {{name}}"
+}

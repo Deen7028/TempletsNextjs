@@ -1,5 +1,6 @@
-import { LoginContainer } from "@/modules/auth";
+import { LoginForm } from "@/modules/auth";
 
 export default function LoginPage() {
-  return <LoginContainer />;
+  return <LoginForm />;
 }
+ 

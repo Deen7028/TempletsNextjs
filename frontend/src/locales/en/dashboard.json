@@ -1,0 +1,8 @@
+{
+  "title": "Dashboard",
+  "overview": "Overview",
+  "totalRequests": "Total Purchase Requests",
+  "pendingApprovals": "Pending Approvals",
+  "approved": "Approved",
+  "rejected": "Rejected"
+}

@@ -1,5 +1,46 @@
 import { createTheme } from '@mui/material/styles';
 
+/**
+ * 🎨 BRAND_COLORS: ปรับแต่งสีระบบทั้งหมดที่จุดเดียว (Single Source of Truth)
+ * เปลี่ยนรหัสสีที่นี่ จะเปลี่ยนทั้ง MUI Theme, Navbar, Cards, Buttons และ CSS Variables ทันที
+ */
+export const BRAND_COLORS = {
+  // Brand Colors
+  primary: '#2563eb',       // สีปุ่มและ Action หลัก (Royal Blue)
+  primaryDark: '#174785',   // สี Navbar / Top Header บาร์ด้านบน (Deep Navy)
+  primaryLight: '#60a5fa',  // สี Hover / Accent
+  primaryHover: '#1d4ed8',  // สี Hover ของปุ่ม Primary
+
+  // Secondary
+  secondary: '#174785',
+  secondaryLight: '#e3f2fd',
+
+  // Status & Feedback
+  success: '#16a34a',       // สีเขียว (สำเร็จ/อนุมัติ)
+  successHover: '#15803d',
+  successLight: '#dcfce7',
+  warning: '#f59e0b',       // สีส้ม (แจ้งเตือน/รอตรวจสอบ)
+  warningLight: '#fef3c7',
+  danger: '#ef4444',        // สีแดง (ข้อผิดพลาด/ลบ/ไม่อนุมัติ)
+  dangerLight: '#fee2e2',
+  info: '#0288d1',
+  infoLight: '#e1f5fe',
+
+  // Light Mode Backgrounds & Neutrals
+  backgroundLight: '#f0f4f9', // พื้นหลังหลักของหน้าเว็บ (Light Mode)
+  surfaceLight: '#ffffff',    // พื้นหลัง Card / Dialog / Table
+  borderLight: '#e2e8f0',     // สีขอบ Card และ Input
+  textLight: '#1e293b',       // สีข้อความหลัก
+  textSecondaryLight: '#64748b',
+
+  // Dark Mode Backgrounds & Neutrals
+  backgroundDark: '#0f172a',  // พื้นหลังหลักของหน้าเว็บ (Dark Mode)
+  surfaceDark: '#1e293b',     // พื้นหลัง Card / Dialog
+  borderDark: '#334155',      // สีขอบ (Dark Mode)
+  textDark: '#f8fafc',        // สีข้อความหลัก (Dark Mode)
+  textSecondaryDark: '#94a3b8',
+};
+
 const fontHeading = "'Prompt', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 const fontBody = "'Prompt', 'Sarabun', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
@@ -17,15 +58,12 @@ const objCommonTypography = {
 };
 
 const getCommonComponents = (isDark: boolean) => {
-  const primaryMain = '#1e5192'; // Deep Navy Blue จาก mockup
-  const primaryLight = '#2d6ac0';
-
   return {
     MuiCssBaseline: {
       styleOverrides: {
         body: {
-          backgroundColor: isDark ? '#0f172a' : '#f0f4f9', // พื้นหลังสีฟ้าเทาอ่อนแบบใน UI Mockup
-          color: isDark ? '#e2e8f0' : '#1e293b',
+          backgroundColor: isDark ? BRAND_COLORS.backgroundDark : BRAND_COLORS.backgroundLight,
+          color: isDark ? BRAND_COLORS.textDark : BRAND_COLORS.textLight,
         },
       },
     },
@@ -41,15 +79,15 @@ const getCommonComponents = (isDark: boolean) => {
           padding: '8px 16px',
         },
         containedPrimary: {
-          backgroundColor: '#2563eb', // Royal Blue ชัดเจนแบบปุ่มในภาพ
+          backgroundColor: BRAND_COLORS.primary,
           '&:hover': {
-            backgroundColor: '#1d4ed8',
+            backgroundColor: BRAND_COLORS.primaryHover,
           },
         },
         containedSuccess: {
-          backgroundColor: '#16a34a',
+          backgroundColor: BRAND_COLORS.success,
           '&:hover': {
-            backgroundColor: '#15803d',
+            backgroundColor: BRAND_COLORS.successHover,
           },
         },
       },
@@ -61,7 +99,7 @@ const getCommonComponents = (isDark: boolean) => {
           boxShadow: isDark
             ? '0 1px 3px rgba(0, 0, 0, 0.4)'
             : '0 1px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04)',
-          border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+          border: `1px solid ${isDark ? BRAND_COLORS.borderDark : BRAND_COLORS.borderLight}`,
         },
       },
     },
@@ -76,12 +114,12 @@ const getCommonComponents = (isDark: boolean) => {
       styleOverrides: {
         root: {
           borderRadius: 8,
-          backgroundColor: isDark ? '#1e293b' : '#ffffff',
+          backgroundColor: isDark ? BRAND_COLORS.surfaceDark : BRAND_COLORS.surfaceLight,
           '&:hover .MuiOutlinedInput-notchedOutline': {
             borderColor: '#94a3b8',
           },
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#2563eb',
+            borderColor: BRAND_COLORS.primary,
             borderWidth: '2px',
           },
         },
@@ -95,19 +133,19 @@ const getCommonComponents = (isDark: boolean) => {
         root: {
           fontFamily: fontBody,
           padding: '10px 14px',
-          borderColor: isDark ? '#334155' : '#e2e8f0',
+          borderColor: isDark ? BRAND_COLORS.borderDark : BRAND_COLORS.borderLight,
         },
         head: {
           fontWeight: 600,
-          backgroundColor: isDark ? '#1e293b' : '#f8fafc',
-          color: isDark ? '#94a3b8' : '#475569',
+          backgroundColor: isDark ? BRAND_COLORS.surfaceDark : '#f8fafc',
+          color: isDark ? BRAND_COLORS.textSecondaryDark : '#475569',
         },
       },
     },
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: '#174785', // สีน้ำเงินกรมท่าเข้มแบบ Top Header บาร์ใน mockup
+          backgroundColor: BRAND_COLORS.primaryDark,
           color: '#ffffff',
         },
       },
@@ -119,39 +157,39 @@ export const lightTheme = createTheme({
   palette: {
     mode: 'light',
     background: {
-      default: '#f0f4f9', // พื้นหลังโทนสว่างสีฟ้าอ่อนตาม mockup
-      paper: '#ffffff',
+      default: BRAND_COLORS.backgroundLight,
+      paper: BRAND_COLORS.surfaceLight,
     },
     primary: {
-      main: '#2563eb', // ปุ่มและ Action หลักเป็นสีฟ้า Royal Blue (#2563eb / #174785)
-      dark: '#174785',
-      light: '#60a5fa',
+      main: BRAND_COLORS.primary,
+      dark: BRAND_COLORS.primaryDark,
+      light: BRAND_COLORS.primaryLight,
       contrastText: '#ffffff',
     },
     secondary: {
-      main: '#174785',
+      main: BRAND_COLORS.secondary,
       contrastText: '#ffffff',
     },
     success: {
-      main: '#16a34a', // สีเขียวอนุมัติ
-      light: '#dcfce7',
+      main: BRAND_COLORS.success,
+      light: BRAND_COLORS.successLight,
       contrastText: '#ffffff',
     },
     warning: {
-      main: '#f59e0b', // สีส้มส่งกลับแก้ไข
-      light: '#fef3c7',
+      main: BRAND_COLORS.warning,
+      light: BRAND_COLORS.warningLight,
       contrastText: '#ffffff',
     },
     error: {
-      main: '#ef4444', // สีแดงไม่อนุมัติ / ลบ
-      light: '#fee2e2',
+      main: BRAND_COLORS.danger,
+      light: BRAND_COLORS.dangerLight,
       contrastText: '#ffffff',
     },
     text: {
-      primary: '#1e293b',
-      secondary: '#64748b',
+      primary: BRAND_COLORS.textLight,
+      secondary: BRAND_COLORS.textSecondaryLight,
     },
-    divider: '#e2e8f0',
+    divider: BRAND_COLORS.borderLight,
   },
   typography: objCommonTypography,
   shape: { borderRadius: 8 },
@@ -162,39 +200,39 @@ export const darkTheme = createTheme({
   palette: {
     mode: 'dark',
     background: {
-      default: '#0f172a',
-      paper: '#1e293b',
+      default: BRAND_COLORS.backgroundDark,
+      paper: BRAND_COLORS.surfaceDark,
     },
     primary: {
-      main: '#3b82f6',
-      dark: '#1d4ed8',
-      light: '#60a5fa',
+      main: BRAND_COLORS.primaryLight,
+      dark: BRAND_COLORS.primaryDark,
+      light: BRAND_COLORS.primaryLight,
       contrastText: '#ffffff',
     },
     secondary: {
-      main: '#1e3a8a',
+      main: BRAND_COLORS.secondary,
       contrastText: '#ffffff',
     },
     success: {
-      main: '#22c55e',
+      main: BRAND_COLORS.success,
       light: 'rgba(34, 197, 94, 0.15)',
       contrastText: '#ffffff',
     },
     warning: {
-      main: '#f59e0b',
+      main: BRAND_COLORS.warning,
       light: 'rgba(245, 158, 11, 0.15)',
       contrastText: '#ffffff',
     },
     error: {
-      main: '#ef4444',
+      main: BRAND_COLORS.danger,
       light: 'rgba(239, 68, 68, 0.15)',
       contrastText: '#ffffff',
     },
     text: {
-      primary: '#f1f5f9',
-      secondary: '#94a3b8',
+      primary: BRAND_COLORS.textDark,
+      secondary: BRAND_COLORS.textSecondaryDark,
     },
-    divider: '#334155',
+    divider: BRAND_COLORS.borderDark,
   },
   typography: objCommonTypography,
   shape: { borderRadius: 8 },

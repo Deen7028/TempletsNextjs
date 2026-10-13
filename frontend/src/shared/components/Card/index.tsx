@@ -1,0 +1,2 @@
+import Card, { CardProps } from "@mui/material/Card";
+export default Card;
